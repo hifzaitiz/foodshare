@@ -1,0 +1,87 @@
+erDiagram
+    LOCATIONS {
+        int id PK
+        string address
+        string area
+        string city
+    }
+
+    USERS {
+        int id PK
+        string full_name
+        string email UK
+        string phone
+        string password_hash
+        enum role "admin, donor, ngo, volunteer"
+        string organization_name "donors only"
+        boolean is_verified "volunteers only"
+        int location_id FK
+        datetime created_at
+    }
+
+    NGOS {
+        int id PK
+        int owner_user_id FK
+        string name
+        string registration_no UK
+        int location_id FK
+        boolean is_verified
+    }
+
+    NGO_MEMBERS {
+        int ngo_id PK, FK
+        int user_id PK, FK
+        enum member_role "manager, volunteer"
+    }
+
+    FOOD_CATEGORIES {
+        int id PK
+        string name UK
+    }
+
+    FOOD_POSTS {
+        int id PK
+        int donor_id FK
+        int category_id FK
+        int pickup_location_id FK
+        string title
+        string description
+        int quantity
+        string unit
+        datetime pickup_from
+        datetime pickup_until
+        enum status "available, claimed, collected"
+        datetime created_at
+    }
+
+    CLAIMS {
+        int id PK
+        int post_id FK, UK
+        int claimed_by FK
+        int ngo_id FK "nullable"
+        datetime claimed_at
+        datetime collected_at
+    }
+
+    POST_STATUS_LOGS {
+        int id PK
+        int post_id FK
+        int changed_by FK
+        string old_status
+        string new_status
+        datetime changed_at
+    }
+
+    LOCATIONS ||--o{ USERS : "address of"
+    LOCATIONS ||--o{ NGOS : "address of"
+    LOCATIONS ||--o{ FOOD_POSTS : "pickup point"
+    USERS ||--o{ NGOS : "owns"
+    NGOS ||--o{ NGO_MEMBERS : "has"
+    USERS ||--o{ NGO_MEMBERS : "belongs to"
+    FOOD_CATEGORIES ||--o{ FOOD_POSTS : "classifies"
+    USERS ||--o{ FOOD_POSTS : "donates"
+    USERS ||--o{ CLAIMS : "makes"
+    NGOS |o--o{ CLAIMS : "on behalf of"
+    FOOD_POSTS ||--o| CLAIMS : "is claimed in"
+    FOOD_POSTS ||--o{ POST_STATUS_LOGS : "history"
+    USERS ||--o{ POST_STATUS_LOGS : "changes"
