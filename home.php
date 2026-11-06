@@ -8,6 +8,9 @@ $role   = $_SESSION['role'];
 
 $myPosts = $available = $myClaims = $pendingNgos = $pendingVolunteers = $categories = $cities = [];
 $eligible = false;
+$stats = [];   // [label, value, icon, colour] cards shown at the top
+$fCity = $fArea = '';
+$fCat  = 0;
 
 // Alerts left by claim.php, collect.php, etc.
 $flash = $_SESSION['flash'] ?? null;
@@ -15,14 +18,23 @@ unset($_SESSION['flash']);
 
 if ($role === 'donor') {
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.title, p.quantity, p.unit, p.pickup_until, p.status, u.full_name AS claimer
+        'SELECT p.id, p.title, p.quantity, p.unit, p.pickup_until, p.status, u.full_name AS claimer, c.name AS category
          FROM food_posts p
-         LEFT JOIN claims c ON c.post_id = p.id
-         LEFT JOIN users u ON u.id = c.claimed_by
+         LEFT JOIN claims cl ON cl.post_id = p.id
+         LEFT JOIN users u ON u.id = cl.claimed_by
+         LEFT JOIN food_categories c ON c.id = p.category_id
          WHERE p.donor_id = ? ORDER BY p.created_at DESC'
     );
     $stmt->execute([$userId]);
     $myPosts = $stmt->fetchAll();
+
+    $byStatus = array_count_values(array_column($myPosts, 'status'));
+    $stats = [
+        ['Total posts', count($myPosts), 'box', 'slate'],
+        ['Available', $byStatus['available'] ?? 0, 'leaf', 'green'],
+        ['Claimed', $byStatus['claimed'] ?? 0, 'hand', 'amber'],
+        ['Collected', $byStatus['collected'] ?? 0, 'check-circle', 'blue'],
+    ];
 }
 
 if ($role === 'ngo' || $role === 'volunteer') {
@@ -35,8 +47,8 @@ if ($role === 'ngo' || $role === 'volunteer') {
     $fArea = trim($_GET['area'] ?? '');
     $fCat  = (int) ($_GET['category'] ?? 0);
 
-    $sql = "SELECT p.id, p.title, p.quantity, p.unit, p.pickup_from, p.pickup_until,
-                   COALESCE(u.organization_name, u.full_name) AS donor, l.area, l.city, c.name AS category
+    $sql = "SELECT p.id, p.title, p.description, p.quantity, p.unit, p.pickup_from, p.pickup_until,
+                   COALESCE(u.organization_name, u.full_name) AS donor, l.address, l.area, l.city, c.name AS category
             FROM food_posts p
             JOIN users u ON u.id = p.donor_id
             LEFT JOIN food_categories c ON c.id = p.category_id
@@ -51,12 +63,21 @@ if ($role === 'ngo' || $role === 'volunteer') {
     $available = $stmt->fetchAll();
 
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.title, p.quantity, p.unit, p.pickup_until, p.status
+        'SELECT p.id, p.title, p.quantity, p.unit, p.pickup_until, p.status, c.claimed_at, c.collected_at
          FROM claims c JOIN food_posts p ON p.id = c.post_id
          WHERE c.claimed_by = ? ORDER BY c.claimed_at DESC'
     );
     $stmt->execute([$userId]);
     $myClaims = $stmt->fetchAll();
+
+    $openNow  = (int) $pdo->query("SELECT COUNT(*) FROM food_posts WHERE status = 'available' AND pickup_until > NOW()")->fetchColumn();
+    $byStatus = array_count_values(array_column($myClaims, 'status'));
+    $stats = [
+        ['Available now', $openNow, 'leaf', 'green'],
+        ['Active claims', $byStatus['claimed'] ?? 0, 'hand', 'amber'],
+        ['Collected', $byStatus['collected'] ?? 0, 'check-circle', 'blue'],
+        ['Claim status', $eligible ? 'Verified' : 'Pending', 'shield', $eligible ? 'green' : 'red'],
+    ];
 }
 
 if ($role === 'admin') {
@@ -68,54 +89,101 @@ if ($role === 'admin') {
     $pendingVolunteers = $pdo->query(
         "SELECT id, full_name, email, phone FROM users WHERE role = 'volunteer' AND is_verified = 0"
     )->fetchAll();
+
+    $totals = $pdo->query(
+        "SELECT (SELECT COUNT(*) FROM users) AS users,
+                (SELECT COUNT(*) FROM food_posts WHERE status = 'collected') AS collected"
+    )->fetch();
+    $stats = [
+        ['Pending NGOs', count($pendingNgos), 'building', 'amber'],
+        ['Pending volunteers', count($pendingVolunteers), 'users', 'amber'],
+        ['Registered users', (int) $totals['users'], 'user', 'slate'],
+        ['Pickups completed', (int) $totals['collected'], 'check-circle', 'green'],
+    ];
 }
 
+$subtitles = [
+    'donor'     => 'Share your surplus food and track who collects it.',
+    'admin'     => 'Verify NGOs and volunteers and keep the platform safe.',
+    'ngo'       => 'Find surplus food near you and claim it before pickup time ends.',
+    'volunteer' => 'Find surplus food near you and claim it before pickup time ends.',
+];
+
 $csrf = csrf_token();
-$pageTitle = 'Home';
+$pageTitle = 'Dashboard';
 require __DIR__ . '/includes/header.php';
 ?>
-<main class="container">
-    <h1>Hello, <?= e($_SESSION['name']) ?></h1>
-    <p class="muted">
-        <?php if ($role === 'donor'): ?>Share your surplus food and track who collects it.
-        <?php elseif ($role === 'admin'): ?>Verify NGOs and volunteers and keep the platform safe.
-        <?php else: ?>Find surplus food near you and claim it before pickup time ends.
+<main class="content">
+    <header class="page-head">
+        <div>
+            <p class="eyebrow"><?= icon('calendar') ?> <?= date('l, d F Y') ?></p>
+            <h1><?= greeting() ?>, <?= e(strtok($_SESSION['name'], ' ')) ?> 👋</h1>
+            <p class="muted"><?= e($subtitles[$role] ?? '') ?></p>
+        </div>
+        <?php if ($role === 'donor'): ?>
+            <a class="btn btn-primary btn-lg" href="post_food.php"><?= icon('plus') ?> Post food</a>
         <?php endif; ?>
-    </p>
+    </header>
 
     <?php if ($flash): ?>
-        <div class="alert alert-<?= $flash['type'] === 'success' ? 'success' : 'error' ?>"><?= e($flash['message']) ?></div>
+        <?php $ok = $flash['type'] === 'success'; ?>
+        <div class="alert alert-<?= $ok ? 'success' : 'error' ?>" <?= $ok ? 'data-autohide' : '' ?>>
+            <?= icon($ok ? 'check-circle' : 'alert') ?><span><?= e($flash['message']) ?></span>
+        </div>
     <?php endif; ?>
 
+    <section class="stats">
+        <?php foreach ($stats as [$label, $value, $ico, $tone]): ?>
+        <div class="stat">
+            <span class="stat-icon tone-<?= $tone ?>"><?= icon($ico) ?></span>
+            <div>
+                <span class="stat-label"><?= e($label) ?></span>
+                <strong class="stat-value"><?= e((string) $value) ?></strong>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </section>
+
     <?php if ($role === 'donor'): ?>
-    <section class="card">
+    <section class="card" id="posts">
         <div class="card-head">
-            <h2>My food posts</h2>
-            <a class="btn btn-primary" href="post_food.php">+ Post food</a>
+            <div>
+                <h2>My food posts</h2>
+                <p class="muted small">Everything you have shared, newest first.</p>
+            </div>
         </div>
         <?php if (!$myPosts): ?>
-            <p class="muted">You have not posted any food yet.</p>
+            <div class="empty">
+                <span class="empty-icon"><?= icon('utensils') ?></span>
+                <h3>No food posted yet</h3>
+                <p>Got leftovers today? Post them and nearby NGOs will be notified on their dashboard.</p>
+                <a class="btn btn-primary" href="post_food.php"><?= icon('plus') ?> Post your first food</a>
+            </div>
         <?php else: ?>
         <div class="table-wrap"><table>
-            <tr><th>Food</th><th>Quantity</th><th>Pickup until</th><th>Status</th><th>Claimed by</th><th></th></tr>
+            <thead><tr><th>Food</th><th>Quantity</th><th>Pickup window</th><th>Status</th><th>Claimed by</th><th></th></tr></thead>
+            <tbody>
             <?php foreach ($myPosts as $p): ?>
-            <tr>
-                <td><?= e($p['title']) ?></td>
-                <td><?= e($p['quantity']) ?> <?= e($p['unit']) ?></td>
-                <td><?= e(fmt_time($p['pickup_until'])) ?></td>
-                <td><span class="status status-<?= e($p['status']) ?>"><?= e($p['status']) ?></span></td>
-                <td><?= e($p['claimer'] ?? '-') ?></td>
-                <td>
-                    <?php if ($p['status'] === 'claimed'): ?>
-                    <form method="post" action="collect.php" class="inline-form">
-                        <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
-                        <input type="hidden" name="post_id" value="<?= (int) $p['id'] ?>">
-                        <button class="btn btn-primary btn-sm" type="submit">Mark collected</button>
-                    </form>
-                    <?php endif; ?>
-                </td>
-            </tr>
+                <?php [$emoji] = category_style($p['category']); [$left, $leftTone] = time_left($p['pickup_until']); ?>
+                <tr>
+                    <td><div class="cell-title"><span class="cell-emoji"><?= $emoji ?></span><div><strong><?= e($p['title']) ?></strong><small><?= e($p['category'] ?? 'Uncategorised') ?></small></div></div></td>
+                    <td><strong><?= e($p['quantity']) ?></strong> <?= e($p['unit']) ?></td>
+                    <td><?= e(fmt_time($p['pickup_until'])) ?>
+                        <?php if ($p['status'] !== 'collected'): ?><small class="time-text t-<?= $leftTone ?>"><?= e($left) ?></small><?php endif; ?></td>
+                    <td><span class="status status-<?= e($p['status']) ?>"><?= e($p['status']) ?></span></td>
+                    <td><?php if ($p['claimer']): ?><span class="person"><span class="avatar avatar-sm"><?= e(initials($p['claimer'])) ?></span><?= e($p['claimer']) ?></span><?php else: ?><span class="muted">-</span><?php endif; ?></td>
+                    <td class="cell-action">
+                        <?php if ($p['status'] === 'claimed'): ?>
+                        <form method="post" action="collect.php" class="inline-form">
+                            <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
+                            <input type="hidden" name="post_id" value="<?= (int) $p['id'] ?>">
+                            <button class="btn btn-primary btn-sm" type="submit"><?= icon('check') ?> Mark collected</button>
+                        </form>
+                        <?php endif; ?>
+                    </td>
+                </tr>
             <?php endforeach; ?>
+            </tbody>
         </table></div>
         <?php endif; ?>
     </section>
@@ -123,136 +191,203 @@ require __DIR__ . '/includes/header.php';
 
     <?php if ($role === 'ngo' || $role === 'volunteer'): ?>
     <?php if (!$eligible): ?>
-        <div class="alert alert-error">
-            You cannot claim food yet. Claiming is open to verified volunteers and members of verified NGOs. Please wait for an admin to verify you.
+        <div class="alert alert-warn"><?= icon('shield') ?>
+            <span><strong>Verification pending.</strong> Claiming is open to verified volunteers and members of verified NGOs. You can browse food now; an admin will verify you soon.</span>
         </div>
     <?php endif; ?>
 
-    <section class="card">
-        <h2>Available food</h2>
-        <form method="get" class="filters">
-            <select name="city" aria-label="City">
-                <option value="">All cities</option>
-                <?php foreach ($cities as $c): ?>
-                    <option value="<?= e($c) ?>" <?= $fCity === $c ? 'selected' : '' ?>><?= e($c) ?></option>
-                <?php endforeach; ?>
-            </select>
-            <input type="text" name="area" placeholder="Area" value="<?= e($fArea) ?>" aria-label="Area">
-            <select name="category" aria-label="Category">
-                <option value="0">All categories</option>
-                <?php foreach ($categories as $c): ?>
-                    <option value="<?= (int) $c['id'] ?>" <?= $fCat === (int) $c['id'] ? 'selected' : '' ?>><?= e($c['name']) ?></option>
-                <?php endforeach; ?>
-            </select>
-            <button class="btn btn-primary" type="submit">Filter</button>
-            <a class="btn btn-outline" href="home.php">Clear</a>
+    <section class="card" id="available">
+        <div class="card-head">
+            <div>
+                <h2>Available food</h2>
+                <p class="muted small">Ending soonest first. Claim it, then collect it before the pickup window closes.</p>
+            </div>
+            <span class="count-pill"><?= count($available) ?> listed</span>
+        </div>
+
+        <form method="get" class="filters" action="home.php#available">
+            <div class="field-icon"><?= icon('pin') ?>
+                <select name="city" aria-label="City">
+                    <option value="">All cities</option>
+                    <?php foreach ($cities as $c): ?>
+                        <option value="<?= e($c) ?>" <?= $fCity === $c ? 'selected' : '' ?>><?= e($c) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="field-icon"><?= icon('search') ?>
+                <input type="text" name="area" placeholder="Search area" value="<?= e($fArea) ?>" aria-label="Area">
+            </div>
+            <div class="field-icon"><?= icon('filter') ?>
+                <select name="category" aria-label="Category">
+                    <option value="0">All categories</option>
+                    <?php foreach ($categories as $c): ?>
+                        <option value="<?= (int) $c['id'] ?>" <?= $fCat === (int) $c['id'] ? 'selected' : '' ?>><?= e($c['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <button class="btn btn-primary" type="submit">Apply</button>
+            <?php if ($fCity !== '' || $fArea !== '' || $fCat > 0): ?>
+                <a class="btn btn-ghost" href="home.php#available"><?= icon('x') ?> Clear</a>
+            <?php endif; ?>
         </form>
 
         <?php if (!$available): ?>
-            <p class="muted">No food is available right now. Check back soon.</p>
+            <div class="empty">
+                <span class="empty-icon"><?= icon('inbox') ?></span>
+                <h3>No food available right now</h3>
+                <p>New posts appear here as soon as donors share them. Try clearing filters or check back soon.</p>
+            </div>
         <?php else: ?>
         <div class="grid">
             <?php foreach ($available as $p): ?>
+            <?php [$emoji, $catClass] = category_style($p['category']); [$left, $leftTone] = time_left($p['pickup_until']); ?>
             <article class="food-card">
-                <h3><?= e($p['title']) ?></h3>
-                <p class="muted"><?= e($p['donor']) ?><?= $p['area'] ? ' &middot; ' . e($p['area']) . ', ' . e($p['city']) : '' ?></p>
-                <p><strong><?= e($p['quantity']) ?></strong> <?= e($p['unit']) ?>
-                    <?php if ($p['category']): ?><span class="tag"><?= e($p['category']) ?></span><?php endif; ?></p>
-                <p class="muted small">Pickup: <?= e(fmt_time($p['pickup_from'])) ?> to <?= e(fmt_time($p['pickup_until'])) ?></p>
-                <?php if ($eligible): ?>
-                <form method="post" action="claim.php">
-                    <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
-                    <input type="hidden" name="post_id" value="<?= (int) $p['id'] ?>">
-                    <button class="btn btn-primary btn-block" type="submit">Claim</button>
-                </form>
-                <?php endif; ?>
+                <div class="food-top <?= $catClass ?>">
+                    <span class="food-emoji"><?= $emoji ?></span>
+                    <span class="time-chip t-<?= $leftTone ?>"><?= icon('clock') ?> <?= e($left) ?></span>
+                </div>
+                <div class="food-body">
+                    <?php if ($p['category']): ?><span class="tag"><?= e($p['category']) ?></span><?php endif; ?>
+                    <h3><?= e($p['title']) ?></h3>
+                    <?php if ($p['description']): ?><p class="food-desc"><?= e($p['description']) ?></p><?php endif; ?>
+                    <ul class="food-meta">
+                        <li><?= icon('building') ?><?= e($p['donor']) ?></li>
+                        <?php if ($p['city']): ?><li><?= icon('pin') ?><?= e(trim(($p['area'] ? $p['area'] . ', ' : '') . $p['city'])) ?></li><?php endif; ?>
+                        <li><?= icon('calendar') ?><?= e(fmt_time($p['pickup_from'])) ?> – <?= e(date('g:i a', strtotime($p['pickup_until']))) ?></li>
+                    </ul>
+                </div>
+                <div class="food-foot">
+                    <div class="qty"><strong><?= e($p['quantity']) ?></strong><span><?= e($p['unit']) ?></span></div>
+                    <?php if ($eligible): ?>
+                    <form method="post" action="claim.php" class="inline-form">
+                        <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
+                        <input type="hidden" name="post_id" value="<?= (int) $p['id'] ?>">
+                        <button class="btn btn-primary" type="submit"><?= icon('hand') ?> Claim</button>
+                    </form>
+                    <?php else: ?>
+                        <span class="locked"><?= icon('lock') ?> Verification needed</span>
+                    <?php endif; ?>
+                </div>
             </article>
             <?php endforeach; ?>
         </div>
         <?php endif; ?>
     </section>
 
-    <section class="card">
-        <h2>My claims</h2>
+    <section class="card" id="claims">
+        <div class="card-head">
+            <div>
+                <h2>My claims</h2>
+                <p class="muted small">Food you have claimed. The donor marks it collected at pickup.</p>
+            </div>
+        </div>
         <?php if (!$myClaims): ?>
-            <p class="muted">You have not claimed any food yet.</p>
+            <div class="empty">
+                <span class="empty-icon"><?= icon('box') ?></span>
+                <h3>No claims yet</h3>
+                <p>When you claim food from the list above, it will show up here.</p>
+            </div>
         <?php else: ?>
         <div class="table-wrap"><table>
-            <tr><th>Food</th><th>Quantity</th><th>Pickup until</th><th>Status</th><th></th></tr>
+            <thead><tr><th>Food</th><th>Quantity</th><th>Pickup until</th><th>Status</th><th></th></tr></thead>
+            <tbody>
             <?php foreach ($myClaims as $c): ?>
-            <tr>
-                <td><?= e($c['title']) ?></td>
-                <td><?= e($c['quantity']) ?> <?= e($c['unit']) ?></td>
-                <td><?= e(fmt_time($c['pickup_until'])) ?></td>
-                <td><span class="status status-<?= e($c['status']) ?>"><?= e($c['status']) ?></span></td>
-                <td>
-                    <?php if ($c['status'] === 'claimed'): ?>
-                    <form method="post" action="cancel.php" class="inline-form">
-                        <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
-                        <input type="hidden" name="post_id" value="<?= (int) $c['id'] ?>">
-                        <button class="btn btn-outline btn-sm" type="submit">Cancel claim</button>
-                    </form>
-                    <?php endif; ?>
-                </td>
-            </tr>
+                <?php [$left, $leftTone] = time_left($c['pickup_until']); ?>
+                <tr>
+                    <td><strong><?= e($c['title']) ?></strong><small class="sub">Claimed <?= e(fmt_time($c['claimed_at'])) ?></small></td>
+                    <td><strong><?= e($c['quantity']) ?></strong> <?= e($c['unit']) ?></td>
+                    <td><?= e(fmt_time($c['pickup_until'])) ?>
+                        <?php if ($c['status'] === 'claimed'): ?><small class="time-text t-<?= $leftTone ?>"><?= e($left) ?></small><?php endif; ?></td>
+                    <td><span class="status status-<?= e($c['status']) ?>"><?= e($c['status']) ?></span></td>
+                    <td class="cell-action">
+                        <?php if ($c['status'] === 'claimed'): ?>
+                        <form method="post" action="cancel.php" class="inline-form">
+                            <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
+                            <input type="hidden" name="post_id" value="<?= (int) $c['id'] ?>">
+                            <button class="btn btn-danger-ghost btn-sm" type="submit"><?= icon('x') ?> Cancel claim</button>
+                        </form>
+                        <?php endif; ?>
+                    </td>
+                </tr>
             <?php endforeach; ?>
+            </tbody>
         </table></div>
         <?php endif; ?>
     </section>
     <?php endif; ?>
 
     <?php if ($role === 'admin'): ?>
-    <section class="card">
-        <h2>NGOs awaiting verification</h2>
-        <?php if (!$pendingNgos): ?>
-            <p class="muted">No pending NGOs.</p>
-        <?php else: ?>
-        <div class="table-wrap"><table>
-            <tr><th>NGO</th><th>Registration no.</th><th>Owner email</th><th></th></tr>
-            <?php foreach ($pendingNgos as $n): ?>
-            <tr>
-                <td><?= e($n['name']) ?></td>
-                <td><?= e($n['registration_no']) ?></td>
-                <td><?= e($n['email']) ?></td>
-                <td>
+    <div class="two-col">
+        <section class="card" id="ngos">
+            <div class="card-head">
+                <div>
+                    <h2>NGO requests</h2>
+                    <p class="muted small">Check the registration number before verifying.</p>
+                </div>
+                <span class="count-pill"><?= count($pendingNgos) ?> pending</span>
+            </div>
+            <?php if (!$pendingNgos): ?>
+                <div class="empty empty-sm">
+                    <span class="empty-icon"><?= icon('check-circle') ?></span>
+                    <h3>All caught up</h3>
+                    <p>No NGOs are waiting for verification.</p>
+                </div>
+            <?php else: ?>
+            <ul class="request-list">
+                <?php foreach ($pendingNgos as $n): ?>
+                <li>
+                    <span class="avatar avatar-ngo"><?= e(initials($n['name'])) ?></span>
+                    <div class="req-info">
+                        <strong><?= e($n['name']) ?></strong>
+                        <small><?= icon('id') ?><?= e($n['registration_no']) ?> &nbsp; <?= icon('mail') ?><?= e($n['email']) ?></small>
+                    </div>
                     <form method="post" action="verify.php" class="inline-form">
                         <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
                         <input type="hidden" name="type" value="ngo">
                         <input type="hidden" name="id" value="<?= (int) $n['id'] ?>">
-                        <button class="btn btn-primary btn-sm" type="submit">Verify</button>
+                        <button class="btn btn-primary btn-sm" type="submit"><?= icon('check') ?> Verify</button>
                     </form>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </table></div>
-        <?php endif; ?>
-    </section>
+                </li>
+                <?php endforeach; ?>
+            </ul>
+            <?php endif; ?>
+        </section>
 
-    <section class="card">
-        <h2>Volunteers awaiting verification</h2>
-        <?php if (!$pendingVolunteers): ?>
-            <p class="muted">No pending volunteers.</p>
-        <?php else: ?>
-        <div class="table-wrap"><table>
-            <tr><th>Name</th><th>Email</th><th>Phone</th><th></th></tr>
-            <?php foreach ($pendingVolunteers as $v): ?>
-            <tr>
-                <td><?= e($v['full_name']) ?></td>
-                <td><?= e($v['email']) ?></td>
-                <td><?= e($v['phone'] ?? '-') ?></td>
-                <td>
+        <section class="card" id="volunteers">
+            <div class="card-head">
+                <div>
+                    <h2>Volunteer requests</h2>
+                    <p class="muted small">Verified volunteers can claim food on their own.</p>
+                </div>
+                <span class="count-pill"><?= count($pendingVolunteers) ?> pending</span>
+            </div>
+            <?php if (!$pendingVolunteers): ?>
+                <div class="empty empty-sm">
+                    <span class="empty-icon"><?= icon('check-circle') ?></span>
+                    <h3>All caught up</h3>
+                    <p>No volunteers are waiting for verification.</p>
+                </div>
+            <?php else: ?>
+            <ul class="request-list">
+                <?php foreach ($pendingVolunteers as $v): ?>
+                <li>
+                    <span class="avatar avatar-volunteer"><?= e(initials($v['full_name'])) ?></span>
+                    <div class="req-info">
+                        <strong><?= e($v['full_name']) ?></strong>
+                        <small><?= icon('mail') ?><?= e($v['email']) ?><?php if ($v['phone']): ?> &nbsp; <?= icon('phone') ?><?= e($v['phone']) ?><?php endif; ?></small>
+                    </div>
                     <form method="post" action="verify.php" class="inline-form">
                         <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
                         <input type="hidden" name="type" value="volunteer">
                         <input type="hidden" name="id" value="<?= (int) $v['id'] ?>">
-                        <button class="btn btn-primary btn-sm" type="submit">Verify</button>
+                        <button class="btn btn-primary btn-sm" type="submit"><?= icon('check') ?> Verify</button>
                     </form>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </table></div>
-        <?php endif; ?>
-    </section>
+                </li>
+                <?php endforeach; ?>
+            </ul>
+            <?php endif; ?>
+        </section>
+    </div>
     <?php endif; ?>
 </main>
 <?php require __DIR__ . '/includes/footer.php'; ?>
