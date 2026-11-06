@@ -63,8 +63,9 @@ if ($role === 'ngo' || $role === 'volunteer') {
     $available = $stmt->fetchAll();
 
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.title, p.quantity, p.unit, p.pickup_until, p.status, c.claimed_at, c.collected_at
+        'SELECT p.id, p.title, p.quantity, p.unit, p.pickup_until, p.status, c.claimed_at, c.collected_at, fc.name AS category
          FROM claims c JOIN food_posts p ON p.id = c.post_id
+         LEFT JOIN food_categories fc ON fc.id = p.category_id
          WHERE c.claimed_by = ? ORDER BY c.claimed_at DESC'
     );
     $stmt->execute([$userId]);
@@ -164,9 +165,9 @@ require __DIR__ . '/includes/header.php';
             <thead><tr><th>Food</th><th>Quantity</th><th>Pickup window</th><th>Status</th><th>Claimed by</th><th></th></tr></thead>
             <tbody>
             <?php foreach ($myPosts as $p): ?>
-                <?php [$emoji] = category_style($p['category']); [$left, $leftTone] = time_left($p['pickup_until']); ?>
+                <?php [, , $photo] = category_style($p['category']); [$left, $leftTone] = time_left($p['pickup_until']); ?>
                 <tr>
-                    <td><div class="cell-title"><span class="cell-emoji"><?= $emoji ?></span><div><strong><?= e($p['title']) ?></strong><small><?= e($p['category'] ?? 'Uncategorised') ?></small></div></div></td>
+                    <td><div class="cell-title"><img class="thumb" src="<?= e($photo) ?>" alt=""><div><strong><?= e($p['title']) ?></strong><small><?= e($p['category'] ?? 'Uncategorised') ?></small></div></div></td>
                     <td><strong><?= e($p['quantity']) ?></strong> <?= e($p['unit']) ?></td>
                     <td><?= e(fmt_time($p['pickup_until'])) ?>
                         <?php if ($p['status'] !== 'collected'): ?><small class="time-text t-<?= $leftTone ?>"><?= e($left) ?></small><?php endif; ?></td>
@@ -240,20 +241,20 @@ require __DIR__ . '/includes/header.php';
         <?php else: ?>
         <div class="grid">
             <?php foreach ($available as $p): ?>
-            <?php [$emoji, $catClass] = category_style($p['category']); [$left, $leftTone] = time_left($p['pickup_until']); ?>
+            <?php [, $catClass, $photo] = category_style($p['category']); [$left, $leftTone] = time_left($p['pickup_until']); ?>
             <article class="food-card">
                 <div class="food-top <?= $catClass ?>">
-                    <span class="food-emoji"><?= $emoji ?></span>
+                    <img src="<?= e($photo) ?>" alt="<?= e($p['category'] ?? 'Food') ?>">
+                    <?php if ($p['category']): ?><span class="tag tag-photo"><?= e($p['category']) ?></span><?php endif; ?>
                     <span class="time-chip t-<?= $leftTone ?>"><?= icon('clock') ?> <?= e($left) ?></span>
                 </div>
                 <div class="food-body">
-                    <?php if ($p['category']): ?><span class="tag"><?= e($p['category']) ?></span><?php endif; ?>
                     <h3><?= e($p['title']) ?></h3>
                     <?php if ($p['description']): ?><p class="food-desc"><?= e($p['description']) ?></p><?php endif; ?>
                     <ul class="food-meta">
                         <li><?= icon('building') ?><?= e($p['donor']) ?></li>
                         <?php if ($p['city']): ?><li><?= icon('pin') ?><?= e(trim(($p['area'] ? $p['area'] . ', ' : '') . $p['city'])) ?></li><?php endif; ?>
-                        <li><?= icon('calendar') ?><?= e(fmt_time($p['pickup_from'])) ?> – <?= e(date('g:i a', strtotime($p['pickup_until']))) ?></li>
+                        <li><?= icon('calendar') ?><?= e(fmt_time($p['pickup_from'])) ?> – <?= e(date('Y-m-d', strtotime($p['pickup_from'])) === date('Y-m-d', strtotime($p['pickup_until'])) ? date('g:i a', strtotime($p['pickup_until'])) : fmt_time($p['pickup_until'])) ?></li>
                     </ul>
                 </div>
                 <div class="food-foot">
@@ -292,9 +293,9 @@ require __DIR__ . '/includes/header.php';
             <thead><tr><th>Food</th><th>Quantity</th><th>Pickup until</th><th>Status</th><th></th></tr></thead>
             <tbody>
             <?php foreach ($myClaims as $c): ?>
-                <?php [$left, $leftTone] = time_left($c['pickup_until']); ?>
+                <?php [$left, $leftTone] = time_left($c['pickup_until']); [, , $photo] = category_style($c['category']); ?>
                 <tr>
-                    <td><strong><?= e($c['title']) ?></strong><small class="sub">Claimed <?= e(fmt_time($c['claimed_at'])) ?></small></td>
+                    <td><div class="cell-title"><img class="thumb" src="<?= e($photo) ?>" alt=""><div><strong><?= e($c['title']) ?></strong><small>Claimed <?= e(fmt_time($c['claimed_at'])) ?></small></div></div></td>
                     <td><strong><?= e($c['quantity']) ?></strong> <?= e($c['unit']) ?></td>
                     <td><?= e(fmt_time($c['pickup_until'])) ?>
                         <?php if ($c['status'] === 'claimed'): ?><small class="time-text t-<?= $leftTone ?>"><?= e($left) ?></small><?php endif; ?></td>

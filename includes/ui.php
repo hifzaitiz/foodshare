@@ -66,7 +66,8 @@ function time_left(?string $until): array
     return [$label, $secs < 3600 ? 'urgent' : ($secs < 3 * 3600 ? 'soon' : 'ok')];
 }
 
-// Emoji + colour theme for each food category (falls back to a neutral style).
+// Emoji, colour class and photo for each food category (falls back to a neutral style).
+// Photos live in assets/img (Unsplash License, see README credits).
 function category_style(?string $name): array
 {
     $map = [
@@ -76,7 +77,8 @@ function category_style(?string $name): array
         'Packaged food'             => ['📦', 'cat-packaged'],
         'Wedding / event leftovers' => ['🎉', 'cat-event'],
     ];
-    return $map[$name ?? ''] ?? ['🍽️', 'cat-default'];
+    [$emoji, $class] = $map[$name ?? ''] ?? ['🍽️', 'cat-default'];
+    return [$emoji, $class, 'assets/img/' . $class . '.jpg'];
 }
 
 function greeting(): string
