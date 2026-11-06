@@ -47,6 +47,8 @@ if ($appShell) {
             <span>Food<b>Share</b></span>
         </a>
 
+        <div>
+        <p class="nav-label">Menu</p>
         <nav class="side-nav" aria-label="Main">
             <?php foreach ($navItems as [$key, $label, $href, $ico]): ?>
                 <a href="<?= e($href) ?>" class="<?= $key === $current ? 'active' : '' ?>">
@@ -54,6 +56,7 @@ if ($appShell) {
                 </a>
             <?php endforeach; ?>
         </nav>
+        </div>
 
         <div class="side-user">
             <span class="avatar avatar-<?= e($_SESSION['role']) ?>"><?= e(initials($_SESSION['name'])) ?></span>
