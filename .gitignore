@@ -1,0 +1,12 @@
+# Local DB credentials (copy config/db.example.php to config/db.php)
+config/db.php
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Office lock files
+~$*
