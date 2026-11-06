@@ -34,29 +34,46 @@ $pageTitle = 'Log in';
 $bodyClass = 'auth-page';
 require __DIR__ . '/includes/header.php';
 ?>
-<main class="auth-card">
-    <h1>Welcome back</h1>
-    <p class="muted">Log in to share or claim surplus food.</p>
+<div class="auth-split">
+    <?php require __DIR__ . '/includes/auth_hero.php'; ?>
 
-    <?php if (isset($_GET['registered'])): ?>
-        <div class="alert alert-success">Account created. Please log in.</div>
-    <?php endif; ?>
-    <?php if ($error): ?>
-        <div class="alert alert-error"><?= e($error) ?></div>
-    <?php endif; ?>
+    <main class="auth-panel">
+        <div class="auth-card">
+            <h1>Welcome back</h1>
+            <p class="muted">Log in to share or claim surplus food.</p>
 
-    <form method="post" id="loginForm" novalidate>
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" value="<?= e($email) ?>" required>
+            <?php if (isset($_GET['registered'])): ?>
+                <div class="alert alert-success"><?= icon('check-circle') ?><span>Account created. Please log in.</span></div>
+            <?php endif; ?>
+            <?php if ($error): ?>
+                <div class="alert alert-error"><?= icon('alert') ?><span><?= e($error) ?></span></div>
+            <?php endif; ?>
 
-        <label for="password">Password</label>
-        <div class="pw-wrap">
-            <input type="password" id="password" name="password" required>
-            <button type="button" class="pw-toggle" data-target="password">Show</button>
+            <form method="post" id="loginForm" novalidate>
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" value="<?= e($email) ?>" placeholder="you@example.com" autocomplete="email" required>
+
+                <label for="password">Password</label>
+                <div class="pw-wrap">
+                    <input type="password" id="password" name="password" placeholder="Your password" autocomplete="current-password" required>
+                    <button type="button" class="pw-toggle" data-target="password">Show</button>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-lg">Log in <?= icon('arrow-right') ?></button>
+            </form>
+            <p class="switch">New here? <a href="signup.php">Create an account</a></p>
+
+            <details class="demo-box">
+                <summary>Demo accounts</summary>
+                <p>Password for all: <code>password123</code></p>
+                <ul>
+                    <li><code>donor@foodshare.test</code></li>
+                    <li><code>ngo@foodshare.test</code></li>
+                    <li><code>volunteer@foodshare.test</code></li>
+                    <li><code>admin@foodshare.test</code></li>
+                </ul>
+            </details>
         </div>
-
-        <button type="submit" class="btn btn-primary btn-block">Log in</button>
-    </form>
-    <p class="switch">New here? <a href="signup.php">Create an account</a></p>
-</main>
+    </main>
+</div>
 <?php require __DIR__ . '/includes/footer.php'; ?>
