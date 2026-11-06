@@ -86,57 +86,94 @@ $pageTitle = 'Sign up';
 $bodyClass = 'auth-page';
 require __DIR__ . '/includes/header.php';
 ?>
-<main class="auth-card">
-    <h1>Create your account</h1>
-    <p class="muted">Donate surplus food or help collect it.</p>
+<div class="auth-split">
+    <?php require __DIR__ . '/includes/auth_hero.php'; ?>
 
-    <?php if ($errors): ?>
-        <div class="alert alert-error">
-            <ul><?php foreach ($errors as $err): ?><li><?= e($err) ?></li><?php endforeach; ?></ul>
+    <main class="auth-panel">
+        <div class="auth-card auth-card-wide">
+            <h1>Create your account</h1>
+            <p class="muted">Donate surplus food or help collect it.</p>
+
+            <?php if ($errors): ?>
+                <div class="alert alert-error"><?= icon('alert') ?>
+                    <ul><?php foreach ($errors as $err): ?><li><?= e($err) ?></li><?php endforeach; ?></ul>
+                </div>
+            <?php endif; ?>
+
+            <form method="post" id="signupForm" novalidate>
+                <fieldset class="role-picker">
+                    <legend>I am a</legend>
+                    <?php foreach ([
+                        'donor'     => ['utensils', 'Donor', 'Restaurant, hall or household'],
+                        'ngo'       => ['building', 'NGO', 'Registered organisation'],
+                        'volunteer' => ['hand', 'Volunteer', 'Individual helper'],
+                    ] as $value => [$ico, $title, $sub]): ?>
+                    <label class="role-card">
+                        <input type="radio" name="role" value="<?= $value ?>" <?= $old['role'] === $value ? 'checked' : '' ?>>
+                        <span class="role-card-body">
+                            <span class="role-icon"><?= icon($ico) ?></span>
+                            <strong><?= $title ?></strong>
+                            <small><?= $sub ?></small>
+                        </span>
+                    </label>
+                    <?php endforeach; ?>
+                </fieldset>
+
+                <div class="row-2">
+                    <div>
+                        <label for="full_name">Full name</label>
+                        <input type="text" id="full_name" name="full_name" value="<?= e($old['full_name']) ?>" placeholder="Ayesha Khan" autocomplete="name" required>
+                    </div>
+                    <div>
+                        <label for="phone">Phone <span class="opt">optional</span></label>
+                        <input type="tel" id="phone" name="phone" value="<?= e($old['phone']) ?>" placeholder="0300 1234567" autocomplete="tel">
+                    </div>
+                </div>
+
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" value="<?= e($old['email']) ?>" placeholder="you@example.com" autocomplete="email" required>
+
+                <div class="role-fields" data-role="donor">
+                    <label for="organization_name">Organization name <span class="opt">optional</span></label>
+                    <input type="text" id="organization_name" name="organization_name" value="<?= e($old['organization_name']) ?>" placeholder="e.g. Spice Garden Restaurant">
+                </div>
+
+                <div class="role-fields" data-role="ngo">
+                    <div class="row-2">
+                        <div>
+                            <label for="ngo_name">NGO name</label>
+                            <input type="text" id="ngo_name" name="ngo_name" value="<?= e($old['ngo_name']) ?>" placeholder="e.g. Hope Foundation">
+                        </div>
+                        <div>
+                            <label for="registration_no">Registration number</label>
+                            <input type="text" id="registration_no" name="registration_no" value="<?= e($old['registration_no']) ?>" placeholder="e.g. NGO-2024-77">
+                        </div>
+                    </div>
+                    <p class="hint"><?= icon('shield') ?> An admin must verify your NGO before you can claim food.</p>
+                </div>
+
+                <div class="role-fields" data-role="volunteer">
+                    <p class="hint"><?= icon('shield') ?> An admin verifies volunteers before they can claim food.</p>
+                </div>
+
+                <div class="row-2">
+                    <div>
+                        <label for="password">Password</label>
+                        <div class="pw-wrap">
+                            <input type="password" id="password" name="password" placeholder="Min. 8 characters" autocomplete="new-password" required>
+                            <button type="button" class="pw-toggle" data-target="password">Show</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="confirm_password">Confirm password</label>
+                        <input type="password" id="confirm_password" name="confirm_password" placeholder="Repeat password" autocomplete="new-password" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-lg">Create account <?= icon('arrow-right') ?></button>
+            </form>
+            <p class="switch">Already have an account? <a href="login.php">Log in</a></p>
         </div>
-    <?php endif; ?>
-
-    <form method="post" id="signupForm" novalidate>
-        <label for="role">I am a</label>
-        <select id="role" name="role">
-            <option value="donor"     <?= $old['role'] === 'donor' ? 'selected' : '' ?>>Donor (restaurant, wedding hall, household)</option>
-            <option value="ngo"       <?= $old['role'] === 'ngo' ? 'selected' : '' ?>>NGO</option>
-            <option value="volunteer" <?= $old['role'] === 'volunteer' ? 'selected' : '' ?>>Volunteer</option>
-        </select>
-
-        <label for="full_name">Full name</label>
-        <input type="text" id="full_name" name="full_name" value="<?= e($old['full_name']) ?>" required>
-
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" value="<?= e($old['email']) ?>" required>
-
-        <label for="phone">Phone</label>
-        <input type="tel" id="phone" name="phone" value="<?= e($old['phone']) ?>">
-
-        <div class="role-fields" data-role="donor">
-            <label for="organization_name">Organization name (optional)</label>
-            <input type="text" id="organization_name" name="organization_name" value="<?= e($old['organization_name']) ?>">
-        </div>
-
-        <div class="role-fields" data-role="ngo">
-            <label for="ngo_name">NGO name</label>
-            <input type="text" id="ngo_name" name="ngo_name" value="<?= e($old['ngo_name']) ?>">
-            <label for="registration_no">Registration number</label>
-            <input type="text" id="registration_no" name="registration_no" value="<?= e($old['registration_no']) ?>">
-            <p class="hint">An admin must verify your NGO before you can claim food.</p>
-        </div>
-
-        <label for="password">Password (min 8 characters)</label>
-        <div class="pw-wrap">
-            <input type="password" id="password" name="password" required>
-            <button type="button" class="pw-toggle" data-target="password">Show</button>
-        </div>
-
-        <label for="confirm_password">Confirm password</label>
-        <input type="password" id="confirm_password" name="confirm_password" required>
-
-        <button type="submit" class="btn btn-primary btn-block">Sign up</button>
-    </form>
-    <p class="switch">Already have an account? <a href="login.php">Log in</a></p>
-</main>
+    </main>
+</div>
 <?php require __DIR__ . '/includes/footer.php'; ?>

@@ -30,6 +30,11 @@
         });
     });
 
+    // Success messages fade out after a few seconds.
+    document.querySelectorAll('.alert-success[data-autohide]').forEach(function (el) {
+        setTimeout(function () { el.classList.add('hide'); }, 4500);
+    });
+
     var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     // Login form
@@ -48,14 +53,17 @@
     // Signup form
     var signupForm = document.getElementById('signupForm');
     if (signupForm) {
-        var roleSelect = signupForm.role;
+        // Role is a group of radio cards; .value gives the checked one.
+        var roleSelect = signupForm.elements.role;
 
         function syncRoleFields() {
             signupForm.querySelectorAll('.role-fields').forEach(function (box) {
                 box.classList.toggle('active', box.dataset.role === roleSelect.value);
             });
         }
-        roleSelect.addEventListener('change', syncRoleFields);
+        signupForm.addEventListener('change', function (e) {
+            if (e.target.name === 'role') { syncRoleFields(); }
+        });
         syncRoleFields();
 
         signupForm.addEventListener('submit', function (e) {
