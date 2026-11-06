@@ -18,7 +18,10 @@ $bodyClass = $bodyClass ?? '';
     <div class="nav-right">
         <span class="user-name"><?= e($_SESSION['name']) ?></span>
         <span class="badge badge-<?= e($_SESSION['role']) ?>"><?= e($_SESSION['role']) ?></span>
-        <a class="btn btn-outline" href="logout.php">Log out</a>
+        <form method="post" action="logout.php" class="inline-form">
+            <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
+            <button class="btn btn-outline" type="submit">Log out</button>
+        </form>
     </div>
 </nav>
 <?php endif; ?>
