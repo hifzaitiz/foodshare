@@ -8,6 +8,7 @@ $role   = $_SESSION['role'];
 
 $myPosts = $available = $myClaims = $pendingNgos = $pendingVolunteers = $categories = $cities = [];
 $eligible = false;
+$rejectedAt = null;   // set when the admin rejected this NGO / volunteer
 $stats = [];   // [label, value, icon, colour] cards shown at the top
 $fCity = $fArea = '';
 $fCat  = 0;
@@ -47,6 +48,13 @@ if ($role === 'donor') {
 
 if ($role === 'ngo' || $role === 'volunteer') {
     $eligible   = can_claim($pdo, $userId, $role);
+    if (!$eligible) {
+        $stmt = $role === 'volunteer'
+            ? $pdo->prepare('SELECT rejected_at FROM users WHERE id = ?')
+            : $pdo->prepare('SELECT MAX(rejected_at) FROM ngos WHERE owner_user_id = ?');
+        $stmt->execute([$userId]);
+        $rejectedAt = $stmt->fetchColumn() ?: null;
+    }
     $categories = $pdo->query('SELECT id, name FROM food_categories ORDER BY name')->fetchAll();
     $cities     = $pdo->query('SELECT DISTINCT city FROM locations ORDER BY city')->fetchAll(PDO::FETCH_COLUMN);
 
@@ -89,7 +97,7 @@ if ($role === 'ngo' || $role === 'volunteer') {
         ['Available now', $openNow, 'leaf', 'green'],
         ['Active claims', $byStatus['claimed'] ?? 0, 'hand', 'amber'],
         ['Collected', $byStatus['collected'] ?? 0, 'check-circle', 'blue'],
-        ['Claim status', $eligible ? 'Verified' : 'Pending', 'shield', $eligible ? 'green' : 'red'],
+        ['Claim status', $eligible ? 'Verified' : ($rejectedAt ? 'Rejected' : 'Pending'), 'shield', $eligible ? 'green' : ($rejectedAt ? 'red' : 'amber')],
     ];
 }
 
@@ -97,10 +105,10 @@ if ($role === 'admin') {
     $pendingNgos = $pdo->query(
         'SELECT n.id, n.name, n.registration_no, u.email
          FROM ngos n JOIN users u ON u.id = n.owner_user_id
-         WHERE n.is_verified = 0'
+         WHERE n.is_verified = 0 AND n.rejected_at IS NULL'
     )->fetchAll();
     $pendingVolunteers = $pdo->query(
-        "SELECT id, full_name, email, phone FROM users WHERE role = 'volunteer' AND is_verified = 0"
+        "SELECT id, full_name, email, phone FROM users WHERE role = 'volunteer' AND is_verified = 0 AND rejected_at IS NULL"
     )->fetchAll();
 
     $totals = $pdo->query(
@@ -224,7 +232,11 @@ require __DIR__ . '/includes/header.php';
     <?php endif; ?>
 
     <?php if ($role === 'ngo' || $role === 'volunteer'): ?>
-    <?php if (!$eligible): ?>
+    <?php if (!$eligible && $rejectedAt): ?>
+        <div class="alert alert-error"><?= icon('alert') ?>
+            <span><strong>Verification rejected</strong> on <?= e(fmt_time($rejectedAt)) ?>. An admin could not verify your <?= $role === 'ngo' ? 'NGO registration' : 'volunteer account' ?>, so you cannot claim food. You can still browse what is available.</span>
+        </div>
+    <?php elseif (!$eligible): ?>
         <div class="alert alert-warn"><?= icon('shield') ?>
             <span><strong>Verification pending.</strong> Claiming is open to verified volunteers and members of verified NGOs. You can browse food now; an admin will verify you soon.</span>
         </div>
@@ -385,7 +397,10 @@ require __DIR__ . '/includes/header.php';
                         <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
                         <input type="hidden" name="type" value="ngo">
                         <input type="hidden" name="id" value="<?= (int) $n['id'] ?>">
-                        <button class="btn btn-primary btn-sm" type="submit"><?= icon('check') ?> Verify</button>
+                        <div class="row-actions">
+                            <button class="btn btn-danger-ghost btn-sm" type="submit" name="action" value="reject" onclick="return confirm('Reject this request? They will not be able to claim food.');"><?= icon('x') ?> Reject</button>
+                            <button class="btn btn-primary btn-sm" type="submit" name="action" value="verify"><?= icon('check') ?> Verify</button>
+                        </div>
                     </form>
                 </li>
                 <?php endforeach; ?>
@@ -420,7 +435,10 @@ require __DIR__ . '/includes/header.php';
                         <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
                         <input type="hidden" name="type" value="volunteer">
                         <input type="hidden" name="id" value="<?= (int) $v['id'] ?>">
-                        <button class="btn btn-primary btn-sm" type="submit"><?= icon('check') ?> Verify</button>
+                        <div class="row-actions">
+                            <button class="btn btn-danger-ghost btn-sm" type="submit" name="action" value="reject" onclick="return confirm('Reject this request? They will not be able to claim food.');"><?= icon('x') ?> Reject</button>
+                            <button class="btn btn-primary btn-sm" type="submit" name="action" value="verify"><?= icon('check') ?> Verify</button>
+                        </div>
                     </form>
                 </li>
                 <?php endforeach; ?>
