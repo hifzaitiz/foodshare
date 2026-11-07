@@ -9,6 +9,7 @@ $role   = $_SESSION['role'];
 $myPosts = $available = $myClaims = $pendingNgos = $pendingVolunteers = $categories = $cities = [];
 $eligible = false;
 $rejectedAt = null;   // set when the admin rejected this NGO / volunteer
+$teams = [];          // NGOs a volunteer belongs to (ngo_members)
 $stats = [];   // [label, value, icon, colour] cards shown at the top
 $fCity = $fArea = '';
 $fCat  = 0;
@@ -81,15 +82,25 @@ if ($role === 'ngo' || $role === 'volunteer') {
     $stmt = $pdo->prepare(
         'SELECT p.id, p.title, p.quantity, p.unit, p.pickup_until, p.status, c.claimed_at, c.collected_at, fc.name AS category,
                 COALESCE(d.organization_name, d.full_name) AS donor, d.phone AS donor_phone,
-                l.address, l.area, l.city
+                l.address, l.area, l.city, cn.name AS claim_ngo
          FROM claims c JOIN food_posts p ON p.id = c.post_id
          JOIN users d ON d.id = p.donor_id
+         LEFT JOIN ngos cn ON cn.id = c.ngo_id
          LEFT JOIN locations l ON l.id = p.pickup_location_id
          LEFT JOIN food_categories fc ON fc.id = p.category_id
          WHERE c.claimed_by = ? ORDER BY c.claimed_at DESC'
     );
     $stmt->execute([$userId]);
     $myClaims = $stmt->fetchAll();
+
+    if ($role === 'volunteer') {
+        $stmt = $pdo->prepare(
+            "SELECT n.name, n.is_verified FROM ngo_members m JOIN ngos n ON n.id = m.ngo_id
+             WHERE m.user_id = ? AND m.member_role = 'volunteer' ORDER BY n.name"
+        );
+        $stmt->execute([$userId]);
+        $teams = $stmt->fetchAll();
+    }
 
     $openNow  = (int) $pdo->query("SELECT COUNT(*) FROM food_posts WHERE status = 'available' AND pickup_until > NOW()")->fetchColumn();
     $byStatus = array_count_values(array_column($myClaims, 'status'));
@@ -151,6 +162,19 @@ require __DIR__ . '/includes/header.php';
         <div class="alert alert-<?= $ok ? 'success' : 'error' ?>" <?= $ok ? 'data-autohide' : '' ?>>
             <?= icon($ok ? 'check-circle' : 'alert') ?><span><?= e($flash['message']) ?></span>
         </div>
+    <?php endif; ?>
+
+    <?php if ($teams): ?>
+    <div class="team-strip">
+        <span class="team-strip-label"><?= icon('users') ?> Your teams</span>
+        <?php foreach ($teams as $t): ?>
+            <span class="team-chip">
+                <?= e($t['name']) ?>
+                <?php if ((int) $t['is_verified'] === 1): ?><span class="status status-available">Verified NGO</span>
+                <?php else: ?><span class="status status-claimed">NGO pending</span><?php endif; ?>
+            </span>
+        <?php endforeach; ?>
+    </div>
     <?php endif; ?>
 
     <section class="stats">
@@ -238,7 +262,7 @@ require __DIR__ . '/includes/header.php';
         </div>
     <?php elseif (!$eligible): ?>
         <div class="alert alert-warn"><?= icon('shield') ?>
-            <span><strong>Verification pending.</strong> Claiming is open to verified volunteers and members of verified NGOs. You can browse food now; an admin will verify you soon.</span>
+            <span><strong>Verification pending.</strong> Claiming is open to verified volunteers and members of verified NGOs. You can browse food now; an admin will verify you soon<?= $role === 'volunteer' ? ', or ask a verified NGO to add you to its team' : '' ?>.</span>
         </div>
     <?php endif; ?>
 
@@ -340,7 +364,7 @@ require __DIR__ . '/includes/header.php';
             <?php foreach ($myClaims as $c): ?>
                 <?php [$left, $leftTone] = time_left($c['pickup_until']); [, , $photo] = category_style($c['category']); ?>
                 <tr>
-                    <td><div class="cell-title"><img class="thumb" src="<?= e($photo) ?>" alt=""><div><a class="title-link" href="post.php?id=<?= (int) $c['id'] ?>"><?= e($c['title']) ?></a><small><?= e($c['quantity']) ?> <?= e($c['unit']) ?> &middot; claimed <?= e(fmt_time($c['claimed_at'])) ?></small></div></div></td>
+                    <td><div class="cell-title"><img class="thumb" src="<?= e($photo) ?>" alt=""><div><a class="title-link" href="post.php?id=<?= (int) $c['id'] ?>"><?= e($c['title']) ?></a><small><?= e($c['quantity']) ?> <?= e($c['unit']) ?> &middot; claimed <?= e(fmt_time($c['claimed_at'])) ?><?php if ($c['claim_ngo'] && $role === 'volunteer'): ?> for <?= e($c['claim_ngo']) ?><?php endif; ?></small></div></div></td>
                     <td>
                         <div class="contact">
                             <strong><?= e($c['donor']) ?></strong>

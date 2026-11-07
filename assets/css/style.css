@@ -506,3 +506,6 @@ input:disabled { background: var(--surface-2); color: var(--muted); cursor: not-
 .tips-list li { display: flex; gap: .6rem; font-size: .85rem; color: var(--text); }
 .tips-list li .icon { color: var(--primary); margin-top: .15rem; }
 .req-info strong .tag { margin-left: .35rem; vertical-align: 1px; }
+.team-strip { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; margin: -.4rem 0 1.2rem; }
+.team-strip-label { display: inline-flex; align-items: center; gap: .4rem; font-size: .82rem; font-weight: 600; color: var(--muted); }
+.team-chip { display: inline-flex; align-items: center; gap: .5rem; padding: .3rem .4rem .3rem .8rem; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; font-size: .85rem; font-weight: 600; color: var(--ink); }
