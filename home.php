@@ -18,10 +18,12 @@ unset($_SESSION['flash']);
 
 if ($role === 'donor') {
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.title, p.quantity, p.unit, p.pickup_until, p.status, u.full_name AS claimer, c.name AS category
+        'SELECT p.id, p.title, p.quantity, p.unit, p.pickup_until, p.status, c.name AS category,
+                u.full_name AS claimer, u.phone AS claimer_phone, n.name AS claimer_ngo
          FROM food_posts p
          LEFT JOIN claims cl ON cl.post_id = p.id
          LEFT JOIN users u ON u.id = cl.claimed_by
+         LEFT JOIN ngos n ON n.id = cl.ngo_id
          LEFT JOIN food_categories c ON c.id = p.category_id
          WHERE p.donor_id = ? ORDER BY p.created_at DESC'
     );
@@ -63,8 +65,12 @@ if ($role === 'ngo' || $role === 'volunteer') {
     $available = $stmt->fetchAll();
 
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.title, p.quantity, p.unit, p.pickup_until, p.status, c.claimed_at, c.collected_at, fc.name AS category
+        'SELECT p.id, p.title, p.quantity, p.unit, p.pickup_until, p.status, c.claimed_at, c.collected_at, fc.name AS category,
+                COALESCE(d.organization_name, d.full_name) AS donor, d.phone AS donor_phone,
+                l.address, l.area, l.city
          FROM claims c JOIN food_posts p ON p.id = c.post_id
+         JOIN users d ON d.id = p.donor_id
+         LEFT JOIN locations l ON l.id = p.pickup_location_id
          LEFT JOIN food_categories fc ON fc.id = p.category_id
          WHERE c.claimed_by = ? ORDER BY c.claimed_at DESC'
     );
@@ -172,7 +178,15 @@ require __DIR__ . '/includes/header.php';
                     <td><?= e(fmt_time($p['pickup_until'])) ?>
                         <?php if ($p['status'] !== 'collected'): ?><small class="time-text t-<?= $leftTone ?>"><?= e($left) ?></small><?php endif; ?></td>
                     <td><span class="status status-<?= e($p['status']) ?>"><?= e($p['status']) ?></span></td>
-                    <td><?php if ($p['claimer']): ?><span class="person"><span class="avatar avatar-sm"><?= e(initials($p['claimer'])) ?></span><?= e($p['claimer']) ?></span><?php else: ?><span class="muted">-</span><?php endif; ?></td>
+                    <td>
+                        <?php if ($p['claimer']): ?>
+                        <div class="contact">
+                            <span class="person"><span class="avatar avatar-sm"><?= e(initials($p['claimer'])) ?></span><?= e($p['claimer']) ?></span>
+                            <?php if ($p['claimer_ngo'] && $p['claimer_ngo'] !== $p['claimer']): ?><small><?= icon('building') ?><?= e($p['claimer_ngo']) ?></small><?php endif; ?>
+                            <?php if ($p['claimer_phone']): ?><a class="phone-link" href="tel:<?= e(preg_replace('/[^0-9+]/', '', $p['claimer_phone'])) ?>"><?= icon('phone') ?><?= e($p['claimer_phone']) ?></a><?php endif; ?>
+                        </div>
+                        <?php else: ?><span class="muted">-</span><?php endif; ?>
+                    </td>
                     <td class="cell-action">
                         <?php if ($p['status'] === 'claimed'): ?>
                         <form method="post" action="collect.php" class="inline-form">
@@ -290,13 +304,19 @@ require __DIR__ . '/includes/header.php';
             </div>
         <?php else: ?>
         <div class="table-wrap"><table>
-            <thead><tr><th>Food</th><th>Quantity</th><th>Pickup until</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Food</th><th>Pickup from</th><th>Pickup until</th><th>Status</th><th></th></tr></thead>
             <tbody>
             <?php foreach ($myClaims as $c): ?>
                 <?php [$left, $leftTone] = time_left($c['pickup_until']); [, , $photo] = category_style($c['category']); ?>
                 <tr>
-                    <td><div class="cell-title"><img class="thumb" src="<?= e($photo) ?>" alt=""><div><strong><?= e($c['title']) ?></strong><small>Claimed <?= e(fmt_time($c['claimed_at'])) ?></small></div></div></td>
-                    <td><strong><?= e($c['quantity']) ?></strong> <?= e($c['unit']) ?></td>
+                    <td><div class="cell-title"><img class="thumb" src="<?= e($photo) ?>" alt=""><div><strong><?= e($c['title']) ?></strong><small><?= e($c['quantity']) ?> <?= e($c['unit']) ?> &middot; claimed <?= e(fmt_time($c['claimed_at'])) ?></small></div></div></td>
+                    <td>
+                        <div class="contact">
+                            <strong><?= e($c['donor']) ?></strong>
+                            <?php if ($c['address']): ?><small><?= icon('pin') ?><?= e($c['address']) ?>, <?= e(trim(($c['area'] ? $c['area'] . ', ' : '') . $c['city'])) ?></small><?php endif; ?>
+                            <?php if ($c['donor_phone']): ?><a class="phone-link" href="tel:<?= e(preg_replace('/[^0-9+]/', '', $c['donor_phone'])) ?>"><?= icon('phone') ?><?= e($c['donor_phone']) ?></a><?php endif; ?>
+                        </div>
+                    </td>
                     <td><?= e(fmt_time($c['pickup_until'])) ?>
                         <?php if ($c['status'] === 'claimed'): ?><small class="time-text t-<?= $leftTone ?>"><?= e($left) ?></small><?php endif; ?></td>
                     <td><span class="status status-<?= e($c['status']) ?>"><?= e($c['status']) ?></span></td>
