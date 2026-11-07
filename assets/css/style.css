@@ -455,3 +455,4 @@ td small, .sub { display: block; color: var(--muted); font-size: .76rem; }
 .contact small .icon { width: 14px; height: 14px; margin-top: .05rem; color: var(--primary); }
 .phone-link { display: inline-flex; align-items: center; gap: .3rem; font-size: .8rem; font-weight: 600; color: var(--primary-dark); }
 .phone-link .icon { width: 14px; height: 14px; }
+.status-expired { background: var(--slate-bg); color: var(--muted); }

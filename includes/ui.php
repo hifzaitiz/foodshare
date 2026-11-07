@@ -86,3 +86,13 @@ function greeting(): string
     $h = (int) date('G');
     return $h < 12 ? 'Good morning' : ($h < 17 ? 'Good afternoon' : 'Good evening');
 }
+
+// Status shown to users. The database keeps available/claimed/collected; an available post
+// whose pickup window has closed is displayed as "expired" (it can no longer be claimed).
+function display_status(string $status, ?string $until): string
+{
+    if ($status === 'available' && $until && strtotime($until) <= time()) {
+        return 'expired';
+    }
+    return $status;
+}
