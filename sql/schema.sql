@@ -19,6 +19,7 @@ CREATE TABLE users (
     role ENUM('admin','donor','ngo','volunteer') NOT NULL,
     organization_name VARCHAR(150) NULL,          -- donors only (restaurant, wedding hall...)
     is_verified TINYINT(1) NOT NULL DEFAULT 0,    -- volunteers only: admin approves
+    rejected_at DATETIME NULL,                    -- volunteers only: set when admin rejects
     location_id INT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE SET NULL
@@ -31,6 +32,7 @@ CREATE TABLE ngos (
     registration_no VARCHAR(50) NOT NULL UNIQUE,
     location_id INT NULL,
     is_verified TINYINT(1) NOT NULL DEFAULT 0,
+    rejected_at DATETIME NULL,                    -- set when admin rejects the NGO
     FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;

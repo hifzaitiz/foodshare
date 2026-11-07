@@ -15,6 +15,7 @@ erDiagram
         enum role "admin, donor, ngo, volunteer"
         string organization_name "donors only"
         boolean is_verified "volunteers only"
+        datetime rejected_at "volunteers only, nullable"
         int location_id FK
         datetime created_at
     }
@@ -26,6 +27,7 @@ erDiagram
         string registration_no UK
         int location_id FK
         boolean is_verified
+        datetime rejected_at "nullable"
     }
 
     NGO_MEMBERS {
