@@ -499,3 +499,10 @@ td small, .sub { display: block; color: var(--muted); font-size: .76rem; }
 input:disabled { background: var(--surface-2); color: var(--muted); cursor: not-allowed; }
 @media (max-width: 960px) { .profile-layout { grid-template-columns: 1fr; } .profile-card { position: static; } }
 .facts dd > .status, .facts dd > .phone-link { align-self: flex-start; }
+
+/* NGO team page */
+.team-add-btn { margin-top: 1rem; }
+.tips-list { list-style: none; margin: 1.3rem 0 0; padding: 1.1rem 0 0; border-top: 1px solid var(--border); display: grid; gap: .8rem; }
+.tips-list li { display: flex; gap: .6rem; font-size: .85rem; color: var(--text); }
+.tips-list li .icon { color: var(--primary); margin-top: .15rem; }
+.req-info strong .tag { margin-left: .35rem; vertical-align: 1px; }
