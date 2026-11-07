@@ -179,7 +179,7 @@ require __DIR__ . '/includes/header.php';
             <?php foreach ($myPosts as $p): ?>
                 <?php [, , $photo] = category_style($p['category']); [$left, $leftTone] = time_left($p['pickup_until']); ?>
                 <tr>
-                    <td><div class="cell-title"><img class="thumb" src="<?= e($photo) ?>" alt=""><div><strong><?= e($p['title']) ?></strong><small><?= e($p['category'] ?? 'Uncategorised') ?></small></div></div></td>
+                    <td><div class="cell-title"><img class="thumb" src="<?= e($photo) ?>" alt=""><div><a class="title-link" href="post.php?id=<?= (int) $p['id'] ?>"><?= e($p['title']) ?></a><small><?= e($p['category'] ?? 'Uncategorised') ?></small></div></div></td>
                     <td><strong><?= e($p['quantity']) ?></strong> <?= e($p['unit']) ?></td>
                     <td><?= e(fmt_time($p['pickup_until'])) ?>
                         <?php if ($p['shown'] === 'available'): ?><small class="time-text t-<?= $leftTone ?>"><?= e($left) ?></small>
@@ -282,7 +282,7 @@ require __DIR__ . '/includes/header.php';
                     <span class="time-chip t-<?= $leftTone ?>"><?= icon('clock') ?> <?= e($left) ?></span>
                 </div>
                 <div class="food-body">
-                    <h3><?= e($p['title']) ?></h3>
+                    <h3><a class="title-link" href="post.php?id=<?= (int) $p['id'] ?>"><?= e($p['title']) ?></a></h3>
                     <?php if ($p['description']): ?><p class="food-desc"><?= e($p['description']) ?></p><?php endif; ?>
                     <ul class="food-meta">
                         <li><?= icon('building') ?><?= e($p['donor']) ?></li>
@@ -328,7 +328,7 @@ require __DIR__ . '/includes/header.php';
             <?php foreach ($myClaims as $c): ?>
                 <?php [$left, $leftTone] = time_left($c['pickup_until']); [, , $photo] = category_style($c['category']); ?>
                 <tr>
-                    <td><div class="cell-title"><img class="thumb" src="<?= e($photo) ?>" alt=""><div><strong><?= e($c['title']) ?></strong><small><?= e($c['quantity']) ?> <?= e($c['unit']) ?> &middot; claimed <?= e(fmt_time($c['claimed_at'])) ?></small></div></div></td>
+                    <td><div class="cell-title"><img class="thumb" src="<?= e($photo) ?>" alt=""><div><a class="title-link" href="post.php?id=<?= (int) $c['id'] ?>"><?= e($c['title']) ?></a><small><?= e($c['quantity']) ?> <?= e($c['unit']) ?> &middot; claimed <?= e(fmt_time($c['claimed_at'])) ?></small></div></div></td>
                     <td>
                         <div class="contact">
                             <strong><?= e($c['donor']) ?></strong>
