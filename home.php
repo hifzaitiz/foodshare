@@ -30,7 +30,13 @@ if ($role === 'donor') {
     $stmt->execute([$userId]);
     $myPosts = $stmt->fetchAll();
 
-    $byStatus = array_count_values(array_column($myPosts, 'status'));
+    // "shown" is what the donor sees: an available post past its pickup time is "expired".
+    foreach ($myPosts as &$post) {
+        $post['shown'] = display_status($post['status'], $post['pickup_until']);
+    }
+    unset($post);
+
+    $byStatus = array_count_values(array_column($myPosts, 'shown'));
     $stats = [
         ['Total posts', count($myPosts), 'box', 'slate'],
         ['Available', $byStatus['available'] ?? 0, 'leaf', 'green'],
@@ -176,8 +182,10 @@ require __DIR__ . '/includes/header.php';
                     <td><div class="cell-title"><img class="thumb" src="<?= e($photo) ?>" alt=""><div><strong><?= e($p['title']) ?></strong><small><?= e($p['category'] ?? 'Uncategorised') ?></small></div></div></td>
                     <td><strong><?= e($p['quantity']) ?></strong> <?= e($p['unit']) ?></td>
                     <td><?= e(fmt_time($p['pickup_until'])) ?>
-                        <?php if ($p['status'] !== 'collected'): ?><small class="time-text t-<?= $leftTone ?>"><?= e($left) ?></small><?php endif; ?></td>
-                    <td><span class="status status-<?= e($p['status']) ?>"><?= e($p['status']) ?></span></td>
+                        <?php if ($p['shown'] === 'available'): ?><small class="time-text t-<?= $leftTone ?>"><?= e($left) ?></small>
+                        <?php elseif ($p['shown'] === 'claimed'): ?><small class="time-text t-<?= $leftTone === 'over' ? 'urgent' : $leftTone ?>"><?= e($leftTone === 'over' ? 'Pickup overdue' : $left) ?></small>
+                        <?php elseif ($p['shown'] === 'expired'): ?><small>Nobody claimed it in time</small><?php endif; ?></td>
+                    <td><span class="status status-<?= e($p['shown']) ?>"><?= e($p['shown']) ?></span></td>
                     <td>
                         <?php if ($p['claimer']): ?>
                         <div class="contact">
@@ -318,7 +326,7 @@ require __DIR__ . '/includes/header.php';
                         </div>
                     </td>
                     <td><?= e(fmt_time($c['pickup_until'])) ?>
-                        <?php if ($c['status'] === 'claimed'): ?><small class="time-text t-<?= $leftTone ?>"><?= e($left) ?></small><?php endif; ?></td>
+                        <?php if ($c['status'] === 'claimed'): ?><small class="time-text t-<?= $leftTone === 'over' ? 'urgent' : $leftTone ?>"><?= e($leftTone === 'over' ? 'Pickup overdue' : $left) ?></small><?php endif; ?></td>
                     <td><span class="status status-<?= e($c['status']) ?>"><?= e($c['status']) ?></span></td>
                     <td class="cell-action">
                         <?php if ($c['status'] === 'claimed'): ?>
