@@ -19,6 +19,9 @@ if ($appShell) {
         case 'volunteer':
             $navItems[] = ['available', 'Available food', 'home.php#available', 'search'];
             $navItems[] = ['claims', 'My claims', 'home.php#claims', 'box'];
+            if ($_SESSION['role'] === 'ngo') {
+                $navItems[] = ['team', 'My team', 'team.php', 'users'];
+            }
             break;
         case 'admin':
             $navItems[] = ['ngos', 'NGO requests', 'home.php#ngos', 'building'];
