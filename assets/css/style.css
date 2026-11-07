@@ -447,3 +447,11 @@ td small, .sub { display: block; color: var(--muted); font-size: .76rem; }
     .form-actions .btn { width: 100%; }
     .filters .btn { flex: 1; }
 }
+
+/* Contact details shown to the two parties of a claim */
+.contact { display: flex; flex-direction: column; gap: .2rem; min-width: 180px; }
+.contact strong { color: var(--ink); }
+.contact small { display: flex; align-items: flex-start; gap: .3rem; color: var(--muted); font-size: .78rem; line-height: 1.35; }
+.contact small .icon { width: 14px; height: 14px; margin-top: .05rem; color: var(--primary); }
+.phone-link { display: inline-flex; align-items: center; gap: .3rem; font-size: .8rem; font-weight: 600; color: var(--primary-dark); }
+.phone-link .icon { width: 14px; height: 14px; }
