@@ -184,7 +184,8 @@ require __DIR__ . '/includes/header.php';
                     <td><?= e(fmt_time($p['pickup_until'])) ?>
                         <?php if ($p['shown'] === 'available'): ?><small class="time-text t-<?= $leftTone ?>"><?= e($left) ?></small>
                         <?php elseif ($p['shown'] === 'claimed'): ?><small class="time-text t-<?= $leftTone === 'over' ? 'urgent' : $leftTone ?>"><?= e($leftTone === 'over' ? 'Pickup overdue' : $left) ?></small>
-                        <?php elseif ($p['shown'] === 'expired'): ?><small>Nobody claimed it in time</small><?php endif; ?></td>
+                        <?php elseif ($p['shown'] === 'expired'): ?><small>Nobody claimed it in time</small>
+                        <?php elseif ($p['shown'] === 'withdrawn'): ?><small>Withdrawn by you</small><?php endif; ?></td>
                     <td><span class="status status-<?= e($p['shown']) ?>"><?= e($p['shown']) ?></span></td>
                     <td>
                         <?php if ($p['claimer']): ?>
@@ -196,6 +197,16 @@ require __DIR__ . '/includes/header.php';
                         <?php else: ?><span class="muted">-</span><?php endif; ?>
                     </td>
                     <td class="cell-action">
+                        <?php if ($p['status'] === 'available'): ?>
+                        <div class="row-actions">
+                            <a class="btn btn-outline btn-sm" href="post_food.php?id=<?= (int) $p['id'] ?>"><?= icon('edit') ?> Edit</a>
+                            <form method="post" action="withdraw.php" class="inline-form" onsubmit="return confirm('Withdraw this post? NGOs will no longer see it.');">
+                                <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
+                                <input type="hidden" name="post_id" value="<?= (int) $p['id'] ?>">
+                                <button class="btn btn-danger-ghost btn-sm" type="submit"><?= icon('x') ?> Withdraw</button>
+                            </form>
+                        </div>
+                        <?php endif; ?>
                         <?php if ($p['status'] === 'claimed'): ?>
                         <form method="post" action="collect.php" class="inline-form">
                             <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
