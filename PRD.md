@@ -39,6 +39,9 @@ A website where donors post surplus food with quantity and pickup time, and NGOs
 ## 6. Status flow
 `available` → (someone claims) → `claimed` → (donor confirms pickup) → `collected`
 
+- A donor can edit or withdraw a post while it is `available` (`available` → `withdrawn`).
+- An `available` post whose pickup time has passed is shown as **expired** (calculated, not stored).
+
 ## 7. Database (8 tables, see docs/erd.mmd)
 | Table | Purpose |
 |---|---|
