@@ -9,6 +9,32 @@ $errors = [];
 $old = ['title' => '', 'category_id' => '', 'quantity' => '', 'unit' => 'plates', 'description' => '',
         'pickup_from' => '', 'pickup_until' => '', 'address' => '', 'area' => '', 'city' => ''];
 
+// Edit mode: post_food.php?id=N edits one of the donor's own posts, only while it is still available.
+$editId = (int) ($_GET['id'] ?? 0);
+if ($editId > 0) {
+    $stmt = $pdo->prepare(
+        "SELECT p.title, p.category_id, p.quantity, p.unit, p.description, p.pickup_from, p.pickup_until,
+                l.address, l.area, l.city
+         FROM food_posts p LEFT JOIN locations l ON l.id = p.pickup_location_id
+         WHERE p.id = ? AND p.donor_id = ? AND p.status = 'available'"
+    );
+    $stmt->execute([$editId, $_SESSION['user_id']]);
+    $existing = $stmt->fetch();
+    if (!$existing) {
+        flash('error', 'This post can no longer be edited (it may have been claimed or withdrawn).');
+        header('Location: home.php');
+        exit;
+    }
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        foreach ($old as $k => $_) {
+            $old[$k] = (string) ($existing[$k] ?? '');
+        }
+        // datetime-local inputs need the "2026-11-07T14:30" format
+        $old['pickup_from']  = date('Y-m-d\TH:i', strtotime($existing['pickup_from']));
+        $old['pickup_until'] = date('Y-m-d\TH:i', strtotime($existing['pickup_until']));
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_post();
     foreach ($old as $k => $_) {
@@ -42,7 +68,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Pickup address, area and city are required.';
     }
 
-    if (!$errors) {
+    if (!$errors && $editId > 0) {
+        $pdo->beginTransaction();
+        try {
+            // Re-check under a row lock: someone may have claimed it while the form was open.
+            $lock = $pdo->prepare("SELECT id FROM food_posts WHERE id = ? AND donor_id = ? AND status = 'available' FOR UPDATE");
+            $lock->execute([$editId, $_SESSION['user_id']]);
+            if ($lock->fetchColumn() === false) {
+                $pdo->rollBack();
+                flash('error', 'This post was claimed or withdrawn before your changes were saved.');
+                header('Location: home.php');
+                exit;
+            }
+            // New location row, so posts that shared the old address are not changed.
+            $pdo->prepare('INSERT INTO locations (address, area, city) VALUES (?, ?, ?)')
+                ->execute([$old['address'], $old['area'], $old['city']]);
+            $locationId = (int) $pdo->lastInsertId();
+
+            $pdo->prepare(
+                'UPDATE food_posts SET category_id = ?, pickup_location_id = ?, title = ?, description = ?,
+                        quantity = ?, unit = ?, pickup_from = ?, pickup_until = ?
+                 WHERE id = ?'
+            )->execute([(int) $old['category_id'], $locationId, $old['title'], $old['description'] ?: null,
+                        (int) $old['quantity'], $old['unit'], date('Y-m-d H:i:s', $from), date('Y-m-d H:i:s', $until), $editId]);
+            $pdo->commit();
+            flash('success', 'Your post has been updated.');
+            header('Location: home.php');
+            exit;
+        } catch (Throwable $ex) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            $errors[] = 'Could not save your changes. Please try again.';
+        }
+    }
+
+    if (!$errors && $editId === 0) {
         $pdo->beginTransaction();
         try {
             $pdo->prepare('INSERT INTO locations (address, area, city) VALUES (?, ?, ?)')
@@ -69,15 +130,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$pageTitle = 'Post food';
+$pageTitle = $editId ? 'Edit post' : 'Post food';
+$activeNav = $editId ? 'home' : 'post_food';
 require __DIR__ . '/includes/header.php';
 ?>
 <main class="content">
     <header class="page-head">
         <div>
-            <p class="eyebrow"><a href="home.php">Dashboard</a> / Post food</p>
-            <h1>Post surplus food</h1>
-            <p class="muted">NGOs and verified volunteers will see this right away and can claim it.</p>
+            <p class="eyebrow"><a href="home.php">Dashboard</a> / <?= $editId ? 'Edit post' : 'Post food' ?></p>
+            <h1><?= $editId ? 'Edit your post' : 'Post surplus food' ?></h1>
+            <p class="muted"><?= $editId
+                ? 'You can change details while nobody has claimed it. Extending the pickup time makes an expired post claimable again.'
+                : 'NGOs and verified volunteers will see this right away and can claim it.' ?></p>
         </div>
     </header>
 
@@ -157,7 +221,7 @@ require __DIR__ . '/includes/header.php';
 
             <div class="form-actions">
                 <a class="btn btn-ghost" href="home.php">Cancel</a>
-                <button type="submit" class="btn btn-primary btn-lg"><?= icon('check') ?> Publish post</button>
+                <button type="submit" class="btn btn-primary btn-lg"><?= icon('check') ?> <?= $editId ? 'Save changes' : 'Publish post' ?></button>
             </div>
         </form>
 
