@@ -60,7 +60,7 @@ CREATE TABLE food_posts (
     unit VARCHAR(30) NOT NULL DEFAULT 'plates',
     pickup_from DATETIME NOT NULL,
     pickup_until DATETIME NOT NULL,
-    status ENUM('available','claimed','collected') NOT NULL DEFAULT 'available',
+    status ENUM('available','claimed','collected','withdrawn') NOT NULL DEFAULT 'available',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (donor_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES food_categories(id) ON DELETE SET NULL,
