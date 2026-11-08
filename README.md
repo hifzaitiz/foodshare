@@ -17,12 +17,12 @@ See [PRD.md](PRD.md) for requirements and [docs/erd.mmd](docs/erd.mmd) for the d
 - Post surplus food: title, category, quantity, description, pickup window and pickup address.
 - Dashboard of all their posts with status, time left and who claimed each one.
 - **Edit** or **withdraw** a post while nobody has claimed it. Extending the pickup time revives an expired post.
-- See the claimer's name, NGO and phone, then **mark the food collected** at pickup.
+- See the claimer's name, NGO and phone, then confirm the pickup by entering the collector's **pickup code** (or scanning their QR code).
 
 ### NGO / volunteer
 - Browse available food as cards, soonest-ending first, with **filters** by city, area and category.
 - **Claim** food (one claim per post) and **cancel** a claim if plans change.
-- After claiming, see the donor's **full pickup address and phone number**.
+- After claiming, see the donor's **full pickup address and phone number**, plus a **6-digit pickup code and QR code** to show at handover.
 - NGO managers have a **My team** page: add volunteers by email and remove them.
   Members of a verified NGO can claim on its behalf.
 
@@ -32,13 +32,14 @@ See [PRD.md](PRD.md) for requirements and [docs/erd.mmd](docs/erd.mmd) for the d
 
 ### Everyone
 - **Post detail page** with a **history timeline**: who posted, claimed, cancelled or collected, and when.
+- **Impact dashboard** with charts: plates saved, success rate, average time to claim, a 14-day activity chart, posts by category, outcomes, and top donors and collectors.
 - **Profile page** to edit name, phone and address, and to change the password.
 - Responsive layout that works on phones.
 
 ## How a post moves
 
 ```
-               claim                    donor confirms pickup
+               claim                donor enters the pickup code
  available ───────────────► claimed ───────────────────────► collected
    │  ▲                        │
    │  └──── claimer cancels ───┘
@@ -48,6 +49,12 @@ See [PRD.md](PRD.md) for requirements and [docs/erd.mmd](docs/erd.mmd) for the d
 ```
 
 Every status change is stored in `post_status_logs` together with who made it, and shown on the post's timeline.
+
+## Pickup codes
+Each claim has a 6-digit code, calculated as an HMAC of the claim (id, post, claimer, time) with a secret key
+(`APP_SECRET`). Nothing extra is stored in the database, a cancelled-and-reclaimed post gets a new code, and
+without the secret nobody can work a code out. The claimer shows the code (or its QR code) at pickup and the
+donor enters it to mark the food collected. Five wrong codes lock that post for ten minutes.
 
 ## Who can claim
 A user can claim food if **either**:
@@ -64,6 +71,7 @@ A user can claim food if **either**:
 | Session fixation | `session_regenerate_id()` on login and on password change |
 | Double claiming | `SELECT … FOR UPDATE` row lock inside a transaction, plus `UNIQUE (claims.post_id)` |
 | Access control | `require_role()` on every page; contact details only shown to the two parties of a claim |
+| Wrong person collecting | Collection needs the claimer's HMAC pickup code; 5 wrong tries lock the post for 10 minutes |
 
 ## Setup
 
@@ -81,7 +89,8 @@ A user can claim food if **either**:
    ```bash
    cp config/db.example.php config/db.php   # then put your MySQL user and password in it
    ```
-   `config/db.php` is git-ignored, so your password never reaches GitHub.
+   Also set `APP_SECRET` in it to a long random string (used for pickup codes), e.g. the output of
+   `php -r "echo bin2hex(random_bytes(32));"`. `config/db.php` is git-ignored, so your secrets never reach GitHub.
 4. **Run it**
    ```bash
    php -S localhost:8000
@@ -98,6 +107,7 @@ ALTER TABLE food_posts MODIFY status ENUM('available','claimed','collected','wit
 ALTER TABLE users ADD COLUMN rejected_at DATETIME NULL AFTER is_verified;
 ALTER TABLE ngos  ADD COLUMN rejected_at DATETIME NULL AFTER is_verified;
 ```
+and add an `APP_SECRET` line to `config/db.php` (see `config/db.example.php`).
 
 ## Demo accounts
 All use the password **`password123`**.
@@ -105,19 +115,25 @@ All use the password **`password123`**.
 | Role | Email | Notes |
 |---|---|---|
 | Admin | admin@saveandserve.test | Verifies and rejects NGOs and volunteers |
-| Donor | donor@saveandserve.test | Spice Garden Restaurant, has 7 posts |
+| Donor | donor@saveandserve.test | Spice Garden Restaurant |
+| Donor | marquee@saveandserve.test | Royal Palm Marquee (wedding hall) |
+| Donor | bakery@saveandserve.test | Daily Bread Bakery |
 | NGO | ngo@saveandserve.test | Manager of Hope Foundation (verified) |
+| NGO | rizq@saveandserve.test | Manager of Rizq Welfare (verified) |
 | Volunteer | volunteer@saveandserve.test | Verified, and a member of Hope Foundation |
+| Volunteer | sara@saveandserve.test | Verified, independent |
+
+The seed also contains two weeks of past activity so the Impact charts have data.
 
 ## Screenshots
 
 | Login | Donor dashboard |
 |---|---|
 | ![Login](docs/screenshots/login.jpg) | ![Donor dashboard](docs/screenshots/donor.jpg) |
-| **Post detail and history** | **NGO team** |
+| **Pickup code and history** | **NGO team** |
 | ![Post detail](docs/screenshots/post.jpg) | ![Team page](docs/screenshots/team.jpg) |
-| **Admin** | |
-| ![Admin](docs/screenshots/admin.jpg) | |
+| **Impact dashboard** | **Admin** |
+| ![Impact](docs/screenshots/impact.jpg) | ![Admin](docs/screenshots/admin.jpg) |
 
 ## Project structure
 ```
@@ -126,9 +142,10 @@ signup.php        sign up as donor, NGO or volunteer
 login.php         log in        logout.php   log out (POST + CSRF)
 home.php          role-based dashboard
 post_food.php     create a post, or edit one with ?id=N
-post.php          post details and status history timeline
+post.php          post details, status history timeline, pickup code + QR
+impact.php        community impact dashboard with charts
 claim.php         claim a post          cancel.php    cancel a claim
-collect.php       donor confirms pickup withdraw.php  donor withdraws a post
+collect.php       donor confirms pickup with the code   withdraw.php  donor withdraws a post
 verify.php        admin verifies or rejects NGOs and volunteers
 team.php          NGO manager adds and removes volunteer members
 profile.php       edit contact details and change password
@@ -138,13 +155,20 @@ includes/         auth.php (sessions, roles, CSRF, claim rules), ui.php (icons, 
                   header.php, footer.php, auth_hero.php
 sql/              schema.sql, seed.sql
 docs/             erd.mmd, project documentation (.docx), screenshots/
-assets/           css/style.css, js/validate.js, img/ (logo, category and login photos)
+assets/           css/style.css, js/ (validate.js, impact.js, pickup.js, vendor/), img/ (logo and photos)
 ```
 
 ## Database
 Eight tables, see [docs/erd.mmd](docs/erd.mmd):
 `users`, `locations`, `ngos`, `ngo_members` (many-to-many between users and NGOs),
 `food_categories`, `food_posts`, `claims` (one per post) and `post_status_logs` (history).
+
+## Third-party libraries
+Bundled in `assets/js/vendor/` so everything works offline:
+- [Chart.js](https://www.chartjs.org) 4.4.1, MIT License
+- [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) 1.4.4 by Kazuhiko Arase, MIT License
+
+Fonts: Bricolage Grotesque and DM Sans from Google Fonts (SIL Open Font License).
 
 ## Image credits
 The logo (`logo.svg`, `logo-full.svg`) was made for this project. Photos in `assets/img/` are from [Unsplash](https://unsplash.com) and used under the
