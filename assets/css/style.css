@@ -1416,3 +1416,23 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: non
     .pf-avatar { width: 72px; height: 72px; font-size: 1.6rem; border-radius: 18px; }
     .pf-help { margin-left: 0; }
 }
+
+/* Profile header: light card in the role colour instead of a black panel */
+.pf-hero { --pf-accent: var(--primary); --pf-soft: var(--primary-50); background: linear-gradient(120deg, var(--pf-soft), var(--surface) 60%); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
+.pf-ngo { --pf-accent: var(--blue); --pf-soft: var(--blue-50); }
+.pf-volunteer { --pf-accent: var(--amber); --pf-soft: var(--amber-50); }
+.pf-admin { --pf-accent: var(--brand); --pf-soft: var(--red-50); }
+.pf-hero::before { display: none; }
+.pf-avatar { background: var(--surface); color: var(--pf-accent); border: 2px solid var(--pf-accent); box-shadow: none; border-radius: 50%; }
+.pf-who h1 { color: var(--ink); }
+.pf-role { background: var(--surface); color: var(--pf-accent); border: 1px solid currentColor; }
+.pf-verify { background: var(--surface); color: var(--muted); border: 1px solid var(--line); }
+.pf-verify.is-ok { color: var(--primary-dark); }
+.pf-verify.is-wait { color: var(--amber); }
+.pf-verify.is-bad { color: var(--red); }
+.pf-meta { color: var(--muted); }
+.pf-meter { background: var(--surface); border-color: var(--line); }
+.pf-ring { background: radial-gradient(closest-side, var(--surface) 80%, transparent 82%), conic-gradient(var(--pf-accent) calc(var(--p) * 1%), var(--line) 0); }
+.pf-ring strong { color: var(--ink); }
+.pf-ring small, .pf-meter-sub { color: var(--muted); }
+.pf-meter-title { color: var(--ink); }
