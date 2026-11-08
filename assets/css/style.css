@@ -223,7 +223,8 @@ input:disabled { background: #f3ece2; color: var(--muted); border-style: dashed;
 .sidebar .brand { padding: 0 .4rem; }
 .brand-light { color: var(--ink); }
 .brand-light b { color: var(--surface); text-shadow: 1.5px 1.5px 0 var(--ink); }
-.brand-logo { width: 40px; height: 40px; flex-shrink: 0; border: var(--border); border-radius: 12px; box-shadow: var(--shadow-sm); }
+.brand-logo { width: 44px; height: 44px; flex-shrink: 0; filter: drop-shadow(2px 2px 0 var(--ink)); transition: transform .3s cubic-bezier(.34, 1.56, .64, 1); }
+.brand:hover .brand-logo { transform: rotate(-12deg) scale(1.08); }
 .auth-hero .brand { position: relative; z-index: 1; }
 
 .nav-label { font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 0 .8rem; margin-bottom: .5rem; }
