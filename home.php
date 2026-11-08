@@ -248,25 +248,31 @@ require __DIR__ . '/includes/header.php';
 
     <?php if ($role === 'donor'): ?>
     <!-- ================= Donor: live posts ================= -->
-    <section class="card" id="live">
-        <div class="card-head">
-            <div>
-                <h2><span class="live-dot"></span> Live now</h2>
-                <p class="muted small">Food that is out there right now, waiting to be claimed or picked up.</p>
-            </div>
-            <span class="count-pill"><?= count($live) ?> live</span>
-        </div>
-
-        <?php if (!$live): ?>
-            <div class="empty">
-                <span class="empty-icon"><?= icon('utensils') ?></span>
-                <h3>Nothing live right now</h3>
-                <p>Cooked too much today? Post it in under a minute and an NGO nearby will come and collect it.</p>
-                <a class="btn btn-primary" href="post_food.php"><?= icon('plus') ?> Post surplus food</a>
-            </div>
-        <?php else: ?>
-        <div class="live-grid">
-            <?php foreach ($live as $i => $p): ?>
+    <?php
+    $lanes = [
+        ['now',  'Now',  'Waiting for a claim',  array_values(array_filter($live, fn($p) => $p['shown'] === 'available'))],
+        ['next', 'Next', 'Collector on the way', array_values(array_filter($live, fn($p) => $p['shown'] === 'claimed'))],
+    ];
+    ?>
+    <section class="lanes" id="live" aria-label="Your food, from posted to collected">
+        <?php foreach ($lanes as [$laneKey, $laneTag, $laneTitle, $laneItems]): ?>
+        <section class="lane lane-<?= $laneKey ?>">
+            <header class="lane-head">
+                <span class="lane-tag"><?= $laneTag ?></span>
+                <h2><?= e($laneTitle) ?></h2>
+                <span class="count-pill"><?= count($laneItems) ?></span>
+            </header>
+            <?php if (!$laneItems): ?>
+                <div class="lane-empty">
+                    <?php if ($laneKey === 'now'): ?>
+                        <p>Nothing waiting. Cooked too much today?</p>
+                        <a class="btn btn-primary btn-sm" href="post_food.php"><?= icon('plus') ?> Post surplus food</a>
+                    <?php else: ?>
+                        <p>No collector is on the way right now. Claimed food appears here with the collector's name and phone.</p>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+            <?php foreach ($laneItems as $i => $p): ?>
             <?php [, , $photo] = category_style($p['category']); [$left, $leftTone] = time_left($p['pickup_until']);
                   $claimed = $p['shown'] === 'claimed'; ?>
             <article class="live-card reveal <?= $claimed ? 'is-claimed' : '' ?>" style="--i: <?= $i ?>">
@@ -314,8 +320,29 @@ require __DIR__ . '/includes/header.php';
                 </div>
             </article>
             <?php endforeach; ?>
-        </div>
-        <?php endif; ?>
+        </section>
+        <?php endforeach; ?>
+
+        <section class="lane lane-done">
+            <header class="lane-head">
+                <span class="lane-tag">Done</span>
+                <h2>Recently finished</h2>
+                <span class="count-pill"><?= count($past) ?></span>
+            </header>
+            <?php if (!$past): ?>
+                <div class="lane-empty"><p>Collected, expired and withdrawn posts will be listed here.</p></div>
+            <?php endif; ?>
+            <ul class="done-list">
+                <?php foreach (array_slice($past, 0, 5) as $p): ?>
+                <li>
+                    <span class="status status-<?= e($p['shown']) ?>"><?= e($p['shown']) ?></span>
+                    <a class="title-link" href="post.php?id=<?= (int) $p['id'] ?>"><?= e($p['title']) ?></a>
+                    <small><?= e($p['quantity']) ?> <?= e($p['unit']) ?><?php if ($p['shown'] === 'collected'): ?> &middot; by <?= e($p['claimer_ngo'] ?: $p['claimer']) ?><?php endif; ?></small>
+                </li>
+                <?php endforeach; ?>
+            </ul>
+            <?php if (count($past) > 5): ?><a class="lane-more" href="#past">All <?= count($past) ?> past posts <?= icon('arrow-right') ?></a><?php endif; ?>
+        </section>
     </section>
 
     <!-- ================= Donor: past posts ================= -->
@@ -456,8 +483,20 @@ require __DIR__ . '/includes/header.php';
                 <p>New posts appear here as soon as donors share them. Try clearing filters or check back soon.</p>
             </div>
         <?php else: ?>
+        <?php
+        // Group the open food by urgency so the most time-critical posts are seen first.
+        $groups = ['urgent' => [], 'today' => [], 'later' => []];
+        foreach ($available as $p) {
+            $secs = strtotime($p['pickup_until']) - time();
+            $key  = $secs < 3600 ? 'urgent' : (date('Y-m-d', strtotime($p['pickup_until'])) === date('Y-m-d') ? 'today' : 'later');
+            $groups[$key][] = $p;
+        }
+        $groupTitles = ['urgent' => 'Ending within the hour', 'today' => 'Later today', 'later' => 'Tomorrow and later'];
+        ?>
+        <?php foreach ($groups as $gKey => $gItems): if (!$gItems) continue; ?>
+        <h3 class="group-head group-<?= $gKey ?>"><?= e($groupTitles[$gKey]) ?> <span><?= count($gItems) ?></span></h3>
         <div class="grid">
-            <?php foreach ($available as $i => $p): ?>
+            <?php foreach ($gItems as $i => $p): ?>
             <?php [, $catClass, $photo] = category_style($p['category']); [$left, $leftTone] = time_left($p['pickup_until']); ?>
             <article class="food-card reveal" style="--i: <?= min($i, 8) ?>">
                 <div class="food-top <?= $catClass ?>">
@@ -489,6 +528,7 @@ require __DIR__ . '/includes/header.php';
             </article>
             <?php endforeach; ?>
         </div>
+        <?php endforeach; ?>
         <?php endif; ?>
     </section>
 

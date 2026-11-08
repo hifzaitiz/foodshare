@@ -31,6 +31,9 @@ if ($appShell) {
     $navItems[] = ['impact', 'Impact', 'impact.php', 'leaf'];
     $navItems[] = ['profile', 'Profile', 'profile.php', 'user'];
 }
+// Short labels for the mobile bottom tab bar
+$shortLabels = ['home' => 'Home', 'post_food' => 'Post', 'available' => 'Food', 'claims' => 'Pickups', 'team' => 'Team',
+                'ngos' => 'NGOs', 'volunteers' => 'Volunteers', 'impact' => 'Impact', 'profile' => 'Me'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -58,8 +61,8 @@ if ($appShell) {
         <p class="nav-label">Menu</p>
         <nav class="side-nav" aria-label="Main">
             <?php foreach ($navItems as [$key, $label, $href, $ico]): ?>
-                <a href="<?= e($href) ?>" class="<?= $key === $current ? 'active' : '' ?>">
-                    <?= icon($ico) ?><span><?= e($label) ?></span>
+                <a href="<?= e($href) ?>" class="<?= trim(($key === $current ? 'active ' : '') . (in_array($key, ['post_food', 'available'], true) ? 'nav-primary' : '')) ?>">
+                    <?= icon($ico) ?><span class="nav-long"><?= e($label) ?></span><span class="nav-short"><?= e($shortLabels[$key] ?? $label) ?></span>
                 </a>
             <?php endforeach; ?>
         </nav>
