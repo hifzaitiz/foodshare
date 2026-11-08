@@ -1267,3 +1267,25 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: non
 .lane-title-row h2 { font-size: 1.22rem; font-weight: 700; line-height: 1.2; letter-spacing: -.01em; margin: 0; flex: 1; min-width: 0; color: var(--ink); }
 .lane-count { font: 600 .85rem var(--font-mono); color: var(--muted); }
 .lane-help { margin: 0 0 0 1.15rem; font-size: .82rem; line-height: 1.45; color: var(--muted); }
+
+/* Lanes: equal height, each scrolls on its own (desktop/tablet), header stays visible */
+@media (min-width: 701px) {
+    .lanes { align-items: stretch; }
+    .lane {
+        height: clamp(460px, calc(100vh - 160px), 760px);
+        overflow-y: auto; overscroll-behavior: contain; align-content: start; grid-auto-rows: max-content;
+        scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent;
+    }
+    .lane::-webkit-scrollbar { width: 8px; }
+    .lane::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 8px; }
+    .lane-head { position: sticky; top: 0; z-index: 2; background: var(--surface-2); }
+    .lane .lane-empty { margin-top: .2rem; }
+}
+@media (min-width: 701px) and (max-width: 1180px) { .lane-done { height: auto; max-height: 520px; } }
+/* Compact cards inside lanes */
+.lane .live-photo img { height: 84px; }
+.lane .live-body { padding: .8rem .9rem; gap: .3rem; }
+.lane .tracker { margin: .3rem 0 .1rem; }
+/* A card whose pickup window just closed (set by app.js) fades out */
+.is-closed { opacity: .5; filter: grayscale(.6); transition: opacity .4s, filter .4s; }
+.is-closed:hover { opacity: .8; }

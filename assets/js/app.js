@@ -37,6 +37,11 @@
             el.style.setProperty('--pct', Math.max(0, Math.min(1, secs / total)).toFixed(3));
             var text = el.querySelector('.tl') || el;
             text.textContent = label(secs, el.getAttribute('data-mode') === 'claimed');
+            // An unclaimed post whose window has closed can no longer be collected: fade its card.
+            if (secs <= 0 && el.getAttribute('data-mode') !== 'claimed') {
+                var card = el.closest('.live-card, .food-card');
+                if (card) { card.classList.add('is-closed'); }
+            }
             el.classList.remove('t-ok', 't-soon', 't-urgent');
             el.classList.add('t-' + tone(secs));
         });
