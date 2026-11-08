@@ -8,7 +8,8 @@ if (is_logged_in()) {
 
 $errors = [];
 $old = ['full_name' => '', 'email' => '', 'phone' => '', 'role' => 'donor',
-        'organization_name' => '', 'ngo_name' => '', 'registration_no' => ''];
+        'organization_name' => '', 'ngo_name' => '', 'registration_no' => '',
+        'ngo_address' => '', 'ngo_area' => '', 'ngo_city' => ''];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     foreach ($old as $k => $_) {
@@ -40,6 +41,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($old['role'] === 'ngo' && ($old['ngo_name'] === '' || $old['registration_no'] === '')) {
         $errors[] = 'NGO name and registration number are required.';
     }
+    if ($old['role'] === 'ngo' && ($old['ngo_address'] === '' || $old['ngo_city'] === '')) {
+        $errors[] = 'NGO address and city are required.';
+    }
 
     if (!$errors) {
         $pdo = db();
@@ -67,8 +71,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $userId = (int) $pdo->lastInsertId();
 
             if ($old['role'] === 'ngo') {
-                $pdo->prepare('INSERT INTO ngos (owner_user_id, name, registration_no) VALUES (?, ?, ?)')
-                    ->execute([$userId, $old['ngo_name'], $old['registration_no']]);
+                // The NGO's office address goes into locations and is linked by ngos.location_id.
+                $pdo->prepare('INSERT INTO locations (address, area, city) VALUES (?, ?, ?)')
+                    ->execute([$old['ngo_address'], $old['ngo_area'] ?: null, $old['ngo_city']]);
+                $ngoLocationId = (int) $pdo->lastInsertId();
+
+                $pdo->prepare('INSERT INTO ngos (owner_user_id, name, registration_no, location_id) VALUES (?, ?, ?, ?)')
+                    ->execute([$userId, $old['ngo_name'], $old['registration_no'], $ngoLocationId]);
                 $pdo->prepare('INSERT INTO ngo_members (ngo_id, user_id, member_role) VALUES (?, ?, ?)')
                     ->execute([(int) $pdo->lastInsertId(), $userId, 'manager']);
             }
@@ -147,6 +156,18 @@ require __DIR__ . '/includes/header.php';
                         <div>
                             <label for="registration_no">Registration number</label>
                             <input type="text" id="registration_no" name="registration_no" value="<?= e($old['registration_no']) ?>" placeholder="e.g. NGO-2024-77">
+                        </div>
+                    </div>
+                    <label for="ngo_address">NGO office address</label>
+                    <input type="text" id="ngo_address" name="ngo_address" value="<?= e($old['ngo_address']) ?>" placeholder="Street, building, landmark">
+                    <div class="row-2">
+                        <div>
+                            <label for="ngo_area">Area <span class="opt">optional</span></label>
+                            <input type="text" id="ngo_area" name="ngo_area" value="<?= e($old['ngo_area']) ?>" placeholder="e.g. Model Town">
+                        </div>
+                        <div>
+                            <label for="ngo_city">City</label>
+                            <input type="text" id="ngo_city" name="ngo_city" value="<?= e($old['ngo_city']) ?>" placeholder="e.g. Lahore">
                         </div>
                     </div>
                     <p class="hint"><?= icon('shield') ?> An admin must verify your NGO before you can claim food.</p>

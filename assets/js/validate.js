@@ -68,7 +68,7 @@
 
         signupForm.addEventListener('submit', function (e) {
             var f = signupForm, ok = true;
-            [f.full_name, f.email, f.phone, f.password, f.confirm_password, f.ngo_name, f.registration_no]
+            [f.full_name, f.email, f.phone, f.password, f.confirm_password, f.ngo_name, f.registration_no, f.ngo_address, f.ngo_city]
                 .forEach(function (i) { if (i) { clearError(i); } });
 
             if (f.full_name.value.trim() === '') { showError(f.full_name, 'Full name is required.'); ok = false; }
@@ -83,6 +83,8 @@
             if (roleSelect.value === 'ngo') {
                 if (f.ngo_name.value.trim() === '') { showError(f.ngo_name, 'NGO name is required.'); ok = false; }
                 if (f.registration_no.value.trim() === '') { showError(f.registration_no, 'Registration number is required.'); ok = false; }
+                if (f.ngo_address.value.trim() === '') { showError(f.ngo_address, 'NGO address is required.'); ok = false; }
+                if (f.ngo_city.value.trim() === '') { showError(f.ngo_city, 'City is required.'); ok = false; }
             }
             if (!ok) { e.preventDefault(); }
         });
