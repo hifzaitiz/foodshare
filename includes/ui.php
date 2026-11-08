@@ -103,3 +103,28 @@ function plural(int $n, string $word): string
 {
     return $n . ' ' . $word . ($n === 1 ? '' : 's');
 }
+
+// Posted -> Claimed -> Collected progress tracker for a post (uses the displayed status).
+// Finished steps are "done"; the next step being waited for is "current".
+function tracker(string $shown): string
+{
+    $done    = ['available' => 1, 'expired' => 1, 'withdrawn' => 1, 'claimed' => 2, 'collected' => 3][$shown] ?? 1;
+    $stopped = in_array($shown, ['expired', 'withdrawn'], true);
+    $steps   = [['Posted', 'plus'], ['Claimed', 'hand'], ['Collected', 'check']];
+    $html = '<ol class="tracker' . ($stopped ? ' tracker-stopped' : '') . '">';
+    foreach ($steps as $i => [$label, $ico]) {
+        $n   = $i + 1;
+        $cls = $n <= $done ? 'done' : ($n === $done + 1 && !$stopped ? 'current' : '');
+        $html .= '<li class="' . $cls . '"><span>' . icon($ico) . '</span>' . $label . '</li>';
+    }
+    if ($stopped) {
+        $html .= '<li class="stopped"><span>' . icon('x') . '</span>' . ucfirst($shown) . '</li>';
+    }
+    return $html . '</ol>';
+}
+
+// ISO 8601 time for JavaScript countdowns (data-until="...").
+function iso(?string $dt): string
+{
+    return $dt ? date('c', strtotime($dt)) : '';
+}
