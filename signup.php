@@ -11,6 +11,11 @@ $old = ['full_name' => '', 'email' => '', 'phone' => '', 'role' => 'donor',
         'organization_name' => '', 'ngo_name' => '', 'registration_no' => '',
         'ngo_address' => '', 'ngo_area' => '', 'ngo_city' => ''];
 
+// Links like signup.php?role=ngo (from the homepage) pre-select a role.
+if (in_array($_GET['role'] ?? '', ['donor', 'ngo', 'volunteer'], true)) {
+    $old['role'] = $_GET['role'];
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     foreach ($old as $k => $_) {
         $old[$k] = trim($_POST[$k] ?? $old[$k]);
