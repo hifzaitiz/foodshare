@@ -11,10 +11,10 @@ INSERT INTO locations (id, address, area, city) VALUES
 (5, 'F-7 Markaz, Jinnah Super', 'F-7', 'Islamabad');
 
 INSERT INTO users (id, full_name, email, phone, password_hash, role, organization_name, is_verified, location_id) VALUES
-(1, 'Site Admin',      'admin@foodshare.test',     '03000000001', @pw, 'admin',     NULL, 0, NULL),
-(2, 'Spice Garden',    'donor@foodshare.test',     '03000000002', @pw, 'donor',     'Spice Garden Restaurant', 0, 1),
-(3, 'Hope Foundation', 'ngo@foodshare.test',       '03000000003', @pw, 'ngo',       NULL, 0, 3),
-(4, 'Ali Volunteer',   'volunteer@foodshare.test', '03000000004', @pw, 'volunteer', NULL, 1, NULL);
+(1, 'Site Admin',      'admin@saveandserve.test',     '03000000001', @pw, 'admin',     NULL, 0, NULL),
+(2, 'Spice Garden',    'donor@saveandserve.test',     '03000000002', @pw, 'donor',     'Spice Garden Restaurant', 0, 1),
+(3, 'Hope Foundation', 'ngo@saveandserve.test',       '03000000003', @pw, 'ngo',       NULL, 0, 3),
+(4, 'Ali Volunteer',   'volunteer@saveandserve.test', '03000000004', @pw, 'volunteer', NULL, 1, NULL);
 
 INSERT INTO ngos (id, owner_user_id, name, registration_no, location_id, is_verified) VALUES
 (1, 3, 'Hope Foundation', 'NGO-2024-77', 3, 1);

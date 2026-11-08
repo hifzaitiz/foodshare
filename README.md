@@ -104,10 +104,10 @@ All use the password **`password123`**.
 
 | Role | Email | Notes |
 |---|---|---|
-| Admin | admin@foodshare.test | Verifies and rejects NGOs and volunteers |
-| Donor | donor@foodshare.test | Spice Garden Restaurant, has 7 posts |
-| NGO | ngo@foodshare.test | Manager of Hope Foundation (verified) |
-| Volunteer | volunteer@foodshare.test | Verified, and a member of Hope Foundation |
+| Admin | admin@saveandserve.test | Verifies and rejects NGOs and volunteers |
+| Donor | donor@saveandserve.test | Spice Garden Restaurant, has 7 posts |
+| NGO | ngo@saveandserve.test | Manager of Hope Foundation (verified) |
+| Volunteer | volunteer@saveandserve.test | Verified, and a member of Hope Foundation |
 
 ## Screenshots
 
