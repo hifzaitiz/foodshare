@@ -19,13 +19,16 @@ See [PRD.md](PRD.md) for requirements and [docs/erd.mmd](docs/erd.mmd) for the d
 
 ### Donor
 - Post surplus food: title, category, quantity, description, pickup window and pickup address.
-- Dashboard of all their posts with status, time left and who claimed each one.
+- Dashboard as three lanes: **Now** (waiting for a claim), **Next** (collector on the way) and **Done**.
+- **Post again** from any previous post, and quick pickup-window chips (next 2h, 4h, until midnight).
 - **Edit** or **withdraw** a post while nobody has claimed it. Extending the pickup time revives an expired post.
 - See the claimer's name, NGO and phone, then confirm the pickup by entering the collector's **pickup code** (or scanning their QR code).
 
 ### NGO / volunteer
 - Browse available food as cards, soonest-ending first, with **filters** by city, area and category.
-- **Claim** food (one claim per post) and **cancel** a claim if plans change.
+- Open food is grouped by urgency (ending within the hour, later today, tomorrow).
+- **Claim** food after a confirmation sheet ("Can you get there by 5:17 pm?") and **cancel** a claim if plans change.
+- A full-screen **pickup pass** (code, QR, address) to show the donor at handover.
 - After claiming, see the donor's **full pickup address and phone number**, plus a **6-digit pickup code and QR code** to show at handover.
 - NGO managers have a **My team** page: add volunteers by email and remove them.
   Members of a verified NGO can claim on its behalf.
@@ -35,6 +38,8 @@ See [PRD.md](PRD.md) for requirements and [docs/erd.mmd](docs/erd.mmd) for the d
 - Overview of pending requests, registered users and completed pickups.
 
 ### Everyone
+- **Light and dark mode** (follows the device, with a toggle), keyboard-friendly focus styles and a skip link.
+- **Mobile bottom tab bar** on phones, with a raised button for each role's main action.
 - **Post detail page** with a **history timeline**: who posted, claimed, cancelled or collected, and when.
 - **Impact dashboard** with charts: plates saved, success rate, average time to claim, a 14-day activity chart, posts by category, outcomes, and top donors and collectors.
 - **Profile page** to edit name, phone and address, and to change the password.
@@ -138,6 +143,8 @@ The seed also contains two weeks of past activity so the Impact charts have data
 | ![Post detail](docs/screenshots/post.jpg) | ![Team page](docs/screenshots/team.jpg) |
 | **Impact dashboard** | **Admin** |
 | ![Impact](docs/screenshots/impact.jpg) | ![Admin](docs/screenshots/admin.jpg) |
+| **Dark mode** | |
+| ![Dark mode](docs/screenshots/dark.jpg) | |
 
 ## Project structure
 ```
