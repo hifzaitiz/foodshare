@@ -250,17 +250,22 @@ require __DIR__ . '/includes/header.php';
     <!-- ================= Donor: live posts ================= -->
     <?php
     $lanes = [
-        ['now',  'Now',  'Waiting for a claim',  array_values(array_filter($live, fn($p) => $p['shown'] === 'available'))],
-        ['next', 'Next', 'Collector on the way', array_values(array_filter($live, fn($p) => $p['shown'] === 'claimed'))],
+        ['now',  1, 'Waiting for a claim',  'Posted and visible to NGOs. You can still edit or withdraw it.',
+         array_values(array_filter($live, fn($p) => $p['shown'] === 'available'))],
+        ['next', 2, 'Collector on the way', 'Someone claimed it. Enter their pickup code when they arrive.',
+         array_values(array_filter($live, fn($p) => $p['shown'] === 'claimed'))],
     ];
     ?>
     <section class="lanes" id="live" aria-label="Your food, from posted to collected">
-        <?php foreach ($lanes as [$laneKey, $laneTag, $laneTitle, $laneItems]): ?>
-        <section class="lane lane-<?= $laneKey ?>">
+        <?php foreach ($lanes as [$laneKey, $laneStep, $laneTitle, $laneHelp, $laneItems]): ?>
+        <section class="lane lane-<?= $laneKey ?>" aria-labelledby="lane-<?= $laneKey ?>">
             <header class="lane-head">
-                <span class="lane-tag"><?= $laneTag ?></span>
-                <h2><?= e($laneTitle) ?></h2>
-                <span class="count-pill"><?= count($laneItems) ?></span>
+                <span class="lane-step">Step <?= $laneStep ?> of 3</span>
+                <div class="lane-title-row">
+                    <h2 id="lane-<?= $laneKey ?>"><?= e($laneTitle) ?></h2>
+                    <span class="lane-count"><?= count($laneItems) ?></span>
+                </div>
+                <p class="lane-help"><?= e($laneHelp) ?></p>
             </header>
             <?php if (!$laneItems): ?>
                 <div class="lane-empty">
@@ -323,11 +328,14 @@ require __DIR__ . '/includes/header.php';
         </section>
         <?php endforeach; ?>
 
-        <section class="lane lane-done">
+        <section class="lane lane-done" aria-labelledby="lane-done">
             <header class="lane-head">
-                <span class="lane-tag">Done</span>
-                <h2>Recently finished</h2>
-                <span class="count-pill"><?= count($past) ?></span>
+                <span class="lane-step">Step 3 of 3</span>
+                <div class="lane-title-row">
+                    <h2 id="lane-done">Recently finished</h2>
+                    <span class="lane-count"><?= count($past) ?></span>
+                </div>
+                <p class="lane-help">Collected, expired or withdrawn. Collected food reached people who need it.</p>
             </header>
             <?php if (!$past): ?>
                 <div class="lane-empty"><p>Collected, expired and withdrawn posts will be listed here.</p></div>
