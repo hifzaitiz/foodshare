@@ -272,7 +272,7 @@ require __DIR__ . '/includes/header.php';
             <article class="live-card reveal <?= $claimed ? 'is-claimed' : '' ?>" style="--i: <?= $i ?>">
                 <div class="live-photo">
                     <img src="<?= e($photo) ?>" alt="">
-                    <span class="time-chip t-<?= $leftTone === 'over' ? 'urgent' : $leftTone ?>" data-until="<?= e(iso($p['pickup_until'])) ?>" <?= $claimed ? 'data-mode="claimed"' : '' ?>>
+                    <span class="time-chip t-<?= $leftTone === 'over' ? 'urgent' : $leftTone ?>" data-until="<?= e(iso($p['pickup_until'])) ?>" data-from="<?= e(iso($p['pickup_from'])) ?>" <?= $claimed ? 'data-mode="claimed"' : '' ?>>
                         <?= icon('clock') ?> <span class="tl"><?= e($claimed && $leftTone === 'over' ? 'Pickup overdue' : $left) ?></span>
                     </span>
                 </div>
@@ -378,7 +378,7 @@ require __DIR__ . '/includes/header.php';
             <article class="live-card is-claimed reveal" style="--i: <?= $i ?>">
                 <div class="live-photo">
                     <img src="<?= e($photo) ?>" alt="">
-                    <span class="time-chip t-<?= $leftTone === 'over' ? 'urgent' : $leftTone ?>" data-until="<?= e(iso($c['pickup_until'])) ?>" data-mode="claimed">
+                    <span class="time-chip t-<?= $leftTone === 'over' ? 'urgent' : $leftTone ?>" data-until="<?= e(iso($c['pickup_until'])) ?>" data-from="<?= e(iso($c['pickup_from'])) ?>" data-mode="claimed">
                         <?= icon('clock') ?> <span class="tl"><?= e($leftTone === 'over' ? 'Pickup overdue' : $left) ?></span>
                     </span>
                 </div>
@@ -463,7 +463,7 @@ require __DIR__ . '/includes/header.php';
                 <div class="food-top <?= $catClass ?>">
                     <img src="<?= e($photo) ?>" alt="<?= e($p['category'] ?? 'Food') ?>">
                     <?php if ($p['category']): ?><span class="tag tag-photo"><?= e($p['category']) ?></span><?php endif; ?>
-                    <span class="time-chip t-<?= $leftTone ?>" data-until="<?= e(iso($p['pickup_until'])) ?>"><?= icon('clock') ?> <span class="tl"><?= e($left) ?></span></span>
+                    <span class="time-chip t-<?= $leftTone ?>" data-until="<?= e(iso($p['pickup_until'])) ?>" data-from="<?= e(iso($p['pickup_from'])) ?>"><?= icon('clock') ?> <span class="tl"><?= e($left) ?></span></span>
                 </div>
                 <div class="food-body">
                     <h3><a class="title-link" href="post.php?id=<?= (int) $p['id'] ?>"><?= e($p['title']) ?></a></h3>

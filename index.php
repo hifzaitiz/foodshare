@@ -21,7 +21,7 @@ $openNow = (int) $pdo->query("SELECT COUNT(*) FROM food_posts WHERE status = 'av
 
 // A small, public preview of food that is open right now (area and city only, never the address).
 $preview = $pdo->query(
-    "SELECT p.title, p.quantity, p.unit, p.pickup_until, c.name AS category, l.area, l.city
+    "SELECT p.title, p.quantity, p.unit, p.pickup_from, p.pickup_until, c.name AS category, l.area, l.city
      FROM food_posts p
      LEFT JOIN food_categories c ON c.id = p.category_id
      LEFT JOIN locations l ON l.id = p.pickup_location_id
@@ -273,7 +273,7 @@ require __DIR__ . '/includes/header.php';
                     <div class="food-top">
                         <img src="<?= e($photo) ?>" alt="<?= e($p['category'] ?? 'Food') ?>">
                         <?php if ($p['category']): ?><span class="tag tag-photo"><?= e($p['category']) ?></span><?php endif; ?>
-                        <span class="time-chip t-<?= $tone ?>" data-until="<?= e(iso($p['pickup_until'])) ?>"><?= icon('clock') ?> <span class="tl"><?= e($left) ?></span></span>
+                        <span class="time-chip t-<?= $tone ?>" data-until="<?= e(iso($p['pickup_until'])) ?>" data-from="<?= e(iso($p['pickup_from'])) ?>"><?= icon('clock') ?> <span class="tl"><?= e($left) ?></span></span>
                     </div>
                     <div class="food-body">
                         <h3><?= e($p['title']) ?></h3>

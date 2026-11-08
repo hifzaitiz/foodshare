@@ -10,40 +10,43 @@
 
 /* 1. Tokens ---------------------------------------------------------------- */
 :root {
-    --ink: #1f1a16;
-    --text: #3a332c;
-    --muted: #7d7166;
-    --paper: #fbf7f1;          /* page background */
+    /* Kitchen-ticket palette: colours come from ingredients and are used for meaning */
+    --ink: #1b1a17;            /* charcoal */
+    --text: #34322d;
+    --muted: #6f6a62;
+    --paper: #f7f4ee;          /* page background */
     --surface: #ffffff;
-    --surface-2: #f6efe6;      /* quiet panels */
-    --line: #ece3d7;
-    --line-strong: #dfd3c3;
+    --surface-2: #efebe3;      /* quiet panels */
+    --line: #e4ded3;
+    --line-strong: #cfc7b9;
 
-    --primary: #e8613c;        /* brand orange (logo) */
-    --primary-dark: #c64d2b;
-    --primary-50: #fdf0ea;
-    --primary-100: #fadccf;
+    --primary: #2e7d4f;        /* coriander: primary actions, available */
+    --primary-dark: #23633e;
+    --primary-50: #e8f2eb;
+    --primary-100: #cde4d4;
+    --brand: #e8613c;          /* logo orange, used sparingly */
 
-    --green: #2f6b4f;          /* trust green */
-    --green-50: #eaf3ee;
-    --green-100: #d3e8dc;
+    --green: #2e7d4f;   --green-50: #e8f2eb;   --green-100: #cde4d4;
+    --turmeric: #e8a317;
+    --amber: #8a5a00;   --amber-50: #fbf0d4;   /* claimed / in progress */
+    --blue: #4d5f68;    --blue-50: #e8eef1;    /* steel: collected */
+    --chilli: #d9381e;
+    --red: #c3301a;     --red-50: #fbe7e3;     /* urgent / destructive */
+    --slate-50: #efebe3;
 
-    --amber: #9a6a07;   --amber-50: #fdf4e0;
-    --blue: #2f5f86;    --blue-50: #eaf1f8;
-    --red: #b42318;     --red-50: #fdecea;
-    --slate-50: #f1ece6;
-
-    --radius-sm: 10px;
-    --radius: 16px;
-    --radius-lg: 24px;
-    --shadow-sm: 0 1px 2px rgba(31, 26, 22, .05);
-    --shadow: 0 1px 2px rgba(31, 26, 22, .04), 0 8px 24px rgba(31, 26, 22, .06);
-    --shadow-lg: 0 2px 4px rgba(31, 26, 22, .04), 0 18px 44px rgba(31, 26, 22, .10);
-    --ring: 0 0 0 4px rgba(232, 97, 60, .16);
+    --radius-sm: 6px;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --shadow-sm: 0 1px 0 rgba(27, 26, 23, .06);
+    --shadow: 0 1px 0 rgba(27, 26, 23, .06), 0 6px 16px rgba(27, 26, 23, .05);
+    --shadow-lg: 0 14px 34px rgba(27, 26, 23, .12);
+    --ring: 0 0 0 3px rgba(46, 125, 79, .22);
 
     --font: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-    --font-display: "Fraunces", Georgia, "Times New Roman", serif;
-    --sidebar-w: 260px;
+    --font-display: "Archivo", "DM Sans", system-ui, sans-serif;
+    --font-serif: "Fraunces", Georgia, serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    --sidebar-w: 248px;
 }
 
 /* 2. Base ------------------------------------------------------------------ */
@@ -802,7 +805,7 @@ body.landing { background: var(--paper); }
     .l-roles, .l-preview { grid-template-columns: 1fr 1fr; }
     .site-links { gap: 1.1rem; }
 }
-@media (max-width: 1020px) {
+@media (max-width: 1120px) {
     .nav-toggle { display: flex; }
     .site-links { position: absolute; top: 100%; left: 0; right: 0; flex-direction: column; align-items: stretch; gap: 0; padding: .5rem 1.5rem 1.2rem; background: #fff; border-bottom: 1px solid var(--line); box-shadow: var(--shadow); display: none; }
     .nav-open .site-links { display: flex; }
@@ -872,7 +875,7 @@ body.landing { background: var(--paper); }
     .site-links { gap: 1rem; }
     .site-links > a { font-size: .9rem; }
 }
-@media (max-width: 1020px) {
+@media (max-width: 1120px) {
     .site-auth { display: none; }
     .site-links-auth-mobile { display: flex; }
     .site-links { justify-content: flex-start; }
@@ -885,3 +888,161 @@ body.landing { background: var(--paper); }
     .topbar-links { display: none; }
     .topbar-inner { justify-content: center; text-align: center; }
 }
+
+/* ==========================================================================
+   REFRESH v3: "Kitchen ticket"
+   Flat colour with meaning (coriander = go, turmeric = in progress,
+   chilli = urgent), square corners, a bold grotesk for headlines and a
+   monospace face for every time, quantity and code. No gradients.
+   This layer only overrides look (colour, radius, type, shadow) of the
+   components above, so their responsive layout rules still apply.
+   ========================================================================== */
+
+/* Type */
+h1, h2, h3 { font-family: var(--font-display); font-weight: 750; letter-spacing: -.02em; font-stretch: 92%; }
+h1 { font-weight: 800; font-stretch: 86%; letter-spacing: -.03em; }
+.mono, .stat-value, .qty strong, .time-chip, .code-chip, .code-input, .pickup-code, .count-pill,
+.l-number strong, .nav-badge, .lb-score strong, .rank, .step { font-family: var(--font-mono); letter-spacing: -.01em; }
+.stat-value { font-weight: 700; }
+.qty strong { font-weight: 700; }
+em, .hl, .hero-line strong, .l-hero h1 em { font-family: var(--font-serif); font-style: italic; font-weight: 500; }
+
+/* Shapes: square-ish everywhere, pills only for status tags */
+.btn { border-radius: var(--radius); font-weight: 600; }
+.btn-primary { box-shadow: none; }
+.btn-primary:hover { box-shadow: none; }
+.pw-toggle { border-radius: var(--radius-sm); }
+input, select, textarea { border-radius: var(--radius); }
+.card, .auth-card, .request-list li, .live-card, .l-role, .l-feature, .l-steps li, .l-faq details,
+.form-card, .tips, .profile-card, .pickup-card, .stat { border-radius: var(--radius-lg); box-shadow: none; }
+.role-card-body { border-radius: var(--radius-lg); }
+.count-pill, .tag, .code-chip, .team-chip, .pill, .nav-badge, .rank { border-radius: 4px; }
+.count-pill { background: var(--surface); border: 1px solid var(--line-strong); color: var(--text); font-size: .74rem; }
+.tag { text-transform: uppercase; letter-spacing: .06em; font-size: .66rem; font-weight: 700; }
+.leaderboard li, .history-list li, .filters { border-radius: var(--radius); }
+.empty-icon, .l-feature-icon, .stat-icon, .role-icon, .l-step-icon { border-radius: var(--radius); }
+
+/* Flat surfaces: remove every gradient */
+.card-highlight { background: var(--surface); border-color: var(--line); border-left: 4px solid var(--turmeric); }
+.profile-card { background: var(--surface); }
+.pickup-card { background: var(--surface); border-color: var(--line); }
+.tips { background: var(--primary-50); border-color: var(--primary-100); }
+
+/* Links, focus, selection follow the coriander primary */
+a { color: var(--primary-dark); }
+.brand b, .brand-light b { color: var(--brand); font-family: var(--font-serif); }
+.eyebrow { color: var(--muted); letter-spacing: .14em; font-family: var(--font-mono); font-weight: 500; font-size: .72rem; }
+.eyebrow .icon { color: var(--brand); }
+
+/* Sidebar: crisp, with a coriander marker on the active item */
+.side-nav a { border-radius: var(--radius); }
+.side-nav a.active { background: var(--primary-50); color: var(--primary-dark); box-shadow: inset 3px 0 0 var(--primary); }
+.side-user { border-radius: var(--radius-lg); }
+
+/* Stats: an inline strip of big monospace numbers instead of four boxes */
+.stats { gap: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; }
+.stats .stat { border: 0; border-radius: 0; background: transparent; box-shadow: none; padding: 1.15rem 1.3rem; }
+.stats .stat + .stat { border-left: 1px solid var(--line); }
+.stats .stat:hover { transform: none; box-shadow: none; background: #fbfaf7; }
+.stat-icon { width: 38px; height: 38px; }
+.stat-value { font-size: 1.75rem; }
+.stat-label { text-transform: uppercase; letter-spacing: .08em; font-size: .68rem; font-weight: 600; }
+
+/* Dashboard welcome banner: flat paper panel with a charcoal edge */
+.hero-banner { background: var(--surface); border: 1px solid var(--line); border-left: 6px solid var(--ink); border-radius: var(--radius-lg); }
+.hero-actions .btn:not(.btn-ink) { background: var(--surface); border-color: var(--line-strong); }
+.photo-stack img { border-radius: var(--radius); padding: 4px; box-shadow: var(--shadow); }
+.hero-line strong { color: var(--primary-dark); }
+
+/* ---------- Food ticket ---------- */
+.food-card, .live-card {
+    border: 1px solid var(--line-strong); border-radius: 6px; background: var(--surface);
+    /* perforated top edge, like a kitchen order ticket */
+    -webkit-mask: radial-gradient(circle 5px at 9px 0, transparent 97%, #000) 0 0 / 18px 100% repeat-x;
+            mask: radial-gradient(circle 5px at 9px 0, transparent 97%, #000) 0 0 / 18px 100% repeat-x;
+}
+.food-card:hover, .live-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.food-top { height: 140px; border-bottom: 1px dashed var(--line-strong); }
+.food-body h3 { font-size: 1.15rem; }
+.food-foot { border-top: 1px dashed var(--line-strong); background: #fbfaf7; }
+.qty strong { font-size: 1.6rem; }
+.qty span { font-family: var(--font-mono); font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+.tag-photo { background: var(--ink); color: #fff; border: 0; }
+.live-photo { border-right: 1px dashed var(--line-strong); }
+
+/* ---------- Countdown chip with a draining ring (--pct set by app.js) ---------- */
+.time-chip { border-radius: 4px; font-weight: 700; font-size: .74rem; padding: .3rem .55rem .3rem .45rem; background: var(--surface); box-shadow: none; border: 1px solid var(--line-strong); backdrop-filter: none; }
+.time-chip .icon { display: none; }
+.time-chip::before {
+    content: ""; width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+    background: conic-gradient(currentColor calc(var(--pct, 1) * 360deg), rgba(27, 26, 23, .12) 0);
+    -webkit-mask: radial-gradient(circle 4px, transparent 97%, #000);
+            mask: radial-gradient(circle 4px, transparent 97%, #000);
+}
+.time-chip.t-ok { color: var(--primary) !important; }
+.time-chip.t-soon { color: var(--amber) !important; border-color: #e9cf8f; }
+.time-chip.t-urgent { background: var(--chilli); border-color: var(--chilli); color: #fff !important; }
+
+/* Status tags keep the pill shape; colours follow meaning */
+.status-available { background: var(--primary-50); color: var(--primary-dark); }
+.status-claimed { background: var(--amber-50); color: var(--amber); }
+.status-collected { background: var(--blue-50); color: var(--blue); }
+
+/* Tracker: coriander for done, turmeric for the step being waited on */
+.tracker li.done span, .tracker li.done + li::before { background: var(--primary); }
+.tracker li.current span { background: var(--turmeric); color: var(--ink); box-shadow: 0 0 0 4px var(--amber-50); }
+@keyframes breathe { 0%, 100% { box-shadow: 0 0 0 3px var(--amber-50); } 50% { box-shadow: 0 0 0 7px var(--amber-50); } }
+
+/* Pickup code: boarding-pass look */
+.pickup-code { border-radius: var(--radius); background: var(--ink); color: #fff; box-shadow: none; letter-spacing: .16em; }
+.code-chip { background: var(--amber-50); color: var(--ink); }
+.code-form-lg { border-radius: var(--radius-lg); background: var(--amber-50); }
+.qr-box { border-radius: var(--radius); }
+
+/* ---------- Login / signup: a dark "pass" board ---------- */
+.auth-hero { background: var(--ink); color: #d8d2c8; }
+.auth-hero .hero-copy h2 { color: #fff; }
+.auth-hero .hl { color: var(--turmeric); background: none; }
+.auth-hero .hero-copy > p, .auth-hero .hero-foot { color: #bdb6ab; }
+.auth-hero .brand-light { color: #fff; }
+.hero-photo { border-radius: var(--radius); background: #2a2824; }
+.hero-photo img { border-radius: 4px; }
+.hero-photo figcaption { color: #9d968b; font-family: var(--font-mono); font-style: normal; font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; }
+.hero-steps li { background: #24221e; border: 1px solid #36332e; border-radius: var(--radius); color: #bdb6ab; backdrop-filter: none; }
+.hero-steps li strong { color: #fff; }
+.hero-steps li > span { border-radius: var(--radius-sm); }
+.hero-steps li:nth-child(1) > span { background: var(--primary); }
+.hero-steps li:nth-child(2) > span { background: var(--turmeric); color: var(--ink); }
+.hero-steps li:nth-child(3) > span { background: var(--brand); }
+
+/* ---------- Homepage: flat, left-aligned, editorial ---------- */
+.l-hero { background: var(--paper); }
+.l-hero h1 { font-weight: 800; }
+.l-hero h1 em { color: var(--primary); }
+.pill { box-shadow: none; border: 1px solid var(--line-strong); font-family: var(--font-mono); font-size: .74rem; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
+.l-heading { text-align: left; margin: 0 0 2.6rem; max-width: 820px; }
+.l-heading .eyebrow { justify-content: flex-start; }
+.l-heading h2 { font-size: clamp(2rem, 3.2vw, 2.9rem); }
+.l-section-tint { background: var(--surface-2); }
+.l-step-num { font-family: var(--font-mono); font-style: normal; font-weight: 700; color: var(--line-strong); }
+.l-steps li:nth-child(1) .l-step-icon { background: var(--primary); }
+.l-steps li:nth-child(2) .l-step-icon { background: var(--turmeric); color: var(--ink); }
+.l-steps li:nth-child(3) .l-step-icon { background: var(--ink); }
+.l-feature { border: 1px solid var(--line); }
+.l-feature:nth-child(n) .l-feature-icon { background: var(--surface-2); color: var(--ink); }
+.l-numbers-grid { border-radius: var(--radius-lg); }
+.l-cta-box { background: var(--ink); color: #d8d2c8; border-radius: var(--radius-lg); }
+.l-cta-box h2 { color: #fff; }
+.l-cta-box p { color: #bdb6ab; }
+.l-cta-box .btn-ink { background: var(--primary); }
+.l-cta-box .btn:not(.btn-ink) { background: transparent; color: #fff; border-color: #4a463f; }
+.faq-plus { border-radius: var(--radius-sm); background: var(--surface-2); }
+.nav-badge { background: var(--primary); }
+.topbar-links a { color: var(--turmeric); }
+.site-links > a::after { background: var(--primary); border-radius: 0; }
+.site-links > a.is-current { color: var(--ink); }
+.site-footer .brand b { color: var(--brand); }
+.stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.stats .stat { min-width: 0; }
+@media (max-width: 1100px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .stats .stat:nth-child(3) { border-left: 0; } .stats .stat:nth-child(n+3) { border-top: 1px solid var(--line); } }
+@media (max-width: 600px) { .stats .stat { padding: .85rem .8rem; } .stat-icon { display: none; } }

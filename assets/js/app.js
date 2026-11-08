@@ -18,6 +18,10 @@
             var until = Date.parse(el.getAttribute('data-until'));
             if (isNaN(until)) { return; }
             var secs = Math.round((until - Date.now()) / 1000);
+            // How much of the pickup window is left (0..1), drawn as a draining ring by the CSS.
+            var from = Date.parse(el.getAttribute('data-from') || '');
+            var total = !isNaN(from) && until > from ? (until - from) / 1000 : 4 * 3600;
+            el.style.setProperty('--pct', Math.max(0, Math.min(1, secs / total)).toFixed(3));
             var text = el.querySelector('.tl') || el;
             text.textContent = label(secs, el.getAttribute('data-mode') === 'claimed');
             el.classList.remove('t-ok', 't-soon', 't-urgent');
