@@ -2,7 +2,7 @@
 // Expects $pageTitle (string). Optional: $bodyClass, $activeNav.
 require_once __DIR__ . '/ui.php';
 
-$pageTitle = $pageTitle ?? 'FoodShare';
+$pageTitle = $pageTitle ?? 'Save & Serve';
 $bodyClass = $bodyClass ?? '';
 $appShell  = is_logged_in() && $bodyClass !== 'auth-page';
 $current   = $activeNav ?? basename($_SERVER['SCRIPT_NAME'], '.php');
@@ -36,7 +36,8 @@ if ($appShell) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= e($pageTitle) ?> | FoodShare</title>
+    <title><?= e($pageTitle) ?> | Save &amp; Serve</title>
+    <link rel="icon" type="image/svg+xml" href="assets/img/logo.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
@@ -47,8 +48,8 @@ if ($appShell) {
 <div class="app">
     <aside class="sidebar">
         <a class="brand" href="home.php">
-            <span class="brand-mark"><?= icon('leaf') ?></span>
-            <span>Food<b>Share</b></span>
+            <img class="brand-logo" src="assets/img/logo.svg" alt="">
+            <span>Save <b>&amp;</b> Serve</span>
         </a>
 
         <div>

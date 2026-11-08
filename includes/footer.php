@@ -1,5 +1,5 @@
 <?php if (!empty($appShell)): ?>
-        <footer class="app-footer">FoodShare &middot; Less waste, fewer hungry nights.</footer>
+        <footer class="app-footer">Save &amp; Serve &middot; Less waste, fewer hungry nights.</footer>
     </div><!-- /.main -->
 </div><!-- /.app -->
 <?php endif; ?>

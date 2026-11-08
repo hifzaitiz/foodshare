@@ -1,7 +1,9 @@
-# FoodShare – Surplus Food Sharing Platform
+<img src="assets/img/logo-full.svg" alt="Save &amp; Serve" height="64">
+
+# Save & Serve – Surplus Food Sharing Platform
 
 Restaurants and wedding halls throw away edible food while people nearby go hungry.
-**FoodShare** lets donors post surplus food with a quantity and pickup window, and lets NGOs and
+**Save & Serve** lets donors post surplus food with a quantity and pickup window, and lets NGOs and
 verified volunteers claim and collect it before it goes to waste.
 
 **Stack:** PHP 8 (PDO, sessions), MySQL / MariaDB, HTML, CSS and vanilla JavaScript. No framework.
@@ -136,7 +138,7 @@ includes/         auth.php (sessions, roles, CSRF, claim rules), ui.php (icons, 
                   header.php, footer.php, auth_hero.php
 sql/              schema.sql, seed.sql
 docs/             erd.mmd, project documentation (.docx), screenshots/
-assets/           css/style.css, js/validate.js, img/ (category and login photos)
+assets/           css/style.css, js/validate.js, img/ (logo, category and login photos)
 ```
 
 ## Database
@@ -145,7 +147,7 @@ Eight tables, see [docs/erd.mmd](docs/erd.mmd):
 `food_categories`, `food_posts`, `claims` (one per post) and `post_status_logs` (history).
 
 ## Image credits
-Photos in `assets/img/` are from [Unsplash](https://unsplash.com) and used under the
+The logo (`logo.svg`, `logo-full.svg`) was made for this project. Photos in `assets/img/` are from [Unsplash](https://unsplash.com) and used under the
 [Unsplash License](https://unsplash.com/license) (free for commercial and non-commercial use).
 
 | File | Source |

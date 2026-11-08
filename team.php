@@ -101,7 +101,7 @@ require __DIR__ . '/includes/header.php';
     <div class="profile-layout">
         <aside class="card">
             <h2>Add a volunteer</h2>
-            <p class="muted small">Enter the email of someone who already has a <strong>volunteer</strong> account on FoodShare.</p>
+            <p class="muted small">Enter the email of someone who already has a <strong>volunteer</strong> account on Save &amp; Serve.</p>
             <form method="post" id="teamForm">
                 <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
                 <input type="hidden" name="action" value="add">

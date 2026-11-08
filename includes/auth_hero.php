@@ -1,7 +1,7 @@
 <aside class="auth-hero">
     <a class="brand brand-light" href="index.php">
-        <span class="brand-mark"><?= icon('leaf') ?></span>
-        <span>Food<b>Share</b></span>
+        <img class="brand-logo" src="assets/img/logo.svg" alt="">
+        <span>Save <b>&amp;</b> Serve</span>
     </a>
 
     <div class="hero-copy">
