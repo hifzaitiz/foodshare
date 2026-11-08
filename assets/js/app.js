@@ -3,6 +3,19 @@
     'use strict';
     var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    // ---- Light / dark mode toggle (remembered per browser) ----
+    document.querySelectorAll('[data-theme-toggle]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var root = document.documentElement;
+            var current = root.getAttribute('data-theme') ||
+                (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            var next = current === 'dark' ? 'light' : 'dark';
+            root.setAttribute('data-theme', next);
+            try { localStorage.setItem('theme', next); } catch (e) {}
+            if (document.getElementById('impact-data')) { location.reload(); }   // charts read colours once
+        });
+    });
+
     // ---- Live countdowns: <span class="time-chip" data-until="ISO" [data-mode="claimed"]><span class="tl"> ----
     function label(secs, claimed) {
         if (secs <= 0) { return claimed ? 'Pickup overdue' : 'Pickup closed'; }

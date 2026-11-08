@@ -33,6 +33,8 @@ function icon(string $name, string $class = 'icon'): string
         'arrow-right' => '<path d="M5 12h14M13 6l6 6-6 6"/>',
         'lock'     => '<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
         'edit'     => '<path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m14 6 4 4"/>',
+        'moon'     => '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/>',
+        'sun'      => '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
         'id'       => '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2.5"/><path d="M5.5 17a3.5 3.5 0 0 1 7 0M15 10h3M15 14h3"/>',
     ];
     $d = $paths[$name] ?? $paths['box'];
@@ -127,4 +129,11 @@ function tracker(string $shown): string
 function iso(?string $dt): string
 {
     return $dt ? date('c', strtotime($dt)) : '';
+}
+
+// Light/dark switch button (both icons are printed; CSS shows the right one).
+function theme_toggle(): string
+{
+    return '<button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch between light and dark mode" title="Light / dark mode">'
+         . icon('moon', 'icon icon-moon') . icon('sun', 'icon icon-sun') . '</button>';
 }

@@ -103,7 +103,7 @@ require __DIR__ . '/includes/header.php';
 <div class="auth-split">
     <?php require __DIR__ . '/includes/auth_hero.php'; ?>
 
-    <main class="auth-panel">
+    <main class="auth-panel" id="main" tabindex="-1">
         <div class="auth-card auth-card-wide">
             <h1>Create your account</h1>
             <p class="muted">Donate surplus food or help collect it.</p>

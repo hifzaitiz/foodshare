@@ -88,6 +88,7 @@ require __DIR__ . '/includes/header.php';
                 <a class="btn btn-primary" href="signup.php">Sign up free</a>
             </span>
         </nav>
+        <?= theme_toggle() ?>
         <div class="site-auth">
             <a class="btn btn-outline" href="login.php"><?= icon('user') ?> Log in</a>
             <a class="btn btn-primary" href="signup.php">Sign up free</a>
@@ -98,7 +99,7 @@ require __DIR__ . '/includes/header.php';
     </div>
 </header>
 
-<main class="landing-main" id="top">
+<main class="landing-main" id="top"><span id="main" tabindex="-1"></span>
     <!-- ============================ Hero ============================ -->
     <section class="l-hero">
         <div class="l-container l-hero-grid">
