@@ -43,6 +43,22 @@
         onScroll();
     }
 
+    // ---- Highlight the navbar link of the section being read ----
+    var spyLinks = document.querySelectorAll('.site-links > a[href^="#"]');
+    if (spyLinks.length && 'IntersectionObserver' in window) {
+        var byId = {};
+        spyLinks.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+        var spy = new IntersectionObserver(function (entries) {
+            entries.forEach(function (en) {
+                if (en.isIntersecting && byId[en.target.id]) {
+                    spyLinks.forEach(function (a) { a.classList.remove('is-current'); });
+                    byId[en.target.id].classList.add('is-current');
+                }
+            });
+        }, { rootMargin: '-45% 0px -50% 0px' });
+        Object.keys(byId).forEach(function (id) { var el = document.getElementById(id); if (el) { spy.observe(el); } });
+    }
+
     // ---- Fade sections in as they scroll into view (staggered within a row) ----
     var reveals = document.querySelectorAll('.scroll-reveal');
     if (reveals.length) {

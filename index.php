@@ -17,6 +17,8 @@ $numbers = $pdo->query(
             (SELECT COUNT(*) FROM ngos WHERE is_verified = 1) AS ngos"
 )->fetch();
 
+$openNow = (int) $pdo->query("SELECT COUNT(*) FROM food_posts WHERE status = 'available' AND pickup_until > NOW()")->fetchColumn();
+
 // A small, public preview of food that is open right now (area and city only, never the address).
 $preview = $pdo->query(
     "SELECT p.title, p.quantity, p.unit, p.pickup_until, c.name AS category, l.area, l.city
@@ -24,7 +26,7 @@ $preview = $pdo->query(
      LEFT JOIN food_categories c ON c.id = p.category_id
      LEFT JOIN locations l ON l.id = p.pickup_location_id
      WHERE p.status = 'available' AND p.pickup_until > NOW()
-     ORDER BY p.pickup_until ASC LIMIT 3"
+     ORDER BY p.pickup_until ASC LIMIT 6"
 )->fetchAll();
 
 $features = [
@@ -52,6 +54,21 @@ $bodyClass = 'landing';
 require __DIR__ . '/includes/header.php';
 ?>
 <!-- ============================ Navbar ============================ -->
+<!-- Live info bar -->
+<div class="topbar">
+    <div class="topbar-inner">
+        <span class="topbar-live"><span class="live-dot"></span>
+            <strong><?= plural($openNow, 'meal') ?></strong> available right now
+            <span class="topbar-sep">·</span>
+            <strong><?= number_format((int) $numbers['plates']) ?></strong> plates saved so far
+        </span>
+        <span class="topbar-links">
+            <a href="signup.php?role=ngo">Are you an NGO? Register <?= icon('arrow-right') ?></a>
+        </span>
+    </div>
+</div>
+
+<!-- Navbar (full width: logo on the left, account buttons on the right) -->
 <header class="site-nav" data-nav>
     <div class="site-nav-inner">
         <a class="brand" href="index.php">
@@ -59,22 +76,29 @@ require __DIR__ . '/includes/header.php';
             <span>Save <b>&amp;</b> Serve</span>
         </a>
         <nav class="site-links" id="site-links" aria-label="Main">
+            <a href="#top" class="is-current">Home</a>
+            <a href="#now">Available food<?php if ($openNow): ?> <span class="nav-badge"><?= $openNow ?></span><?php endif; ?></a>
             <a href="#how">How it works</a>
-            <a href="#features">Features</a>
             <a href="#who">Who it's for</a>
+            <a href="#impact">Impact</a>
             <a href="#faq">FAQ</a>
-            <span class="site-links-auth">
-                <a class="btn btn-ghost" href="login.php">Log in</a>
+            <a href="#contact">Contact</a>
+            <span class="site-links-auth site-links-auth-mobile">
+                <a class="btn btn-outline" href="login.php"><?= icon('user') ?> Log in</a>
                 <a class="btn btn-primary" href="signup.php">Sign up free</a>
             </span>
         </nav>
+        <div class="site-auth">
+            <a class="btn btn-outline" href="login.php"><?= icon('user') ?> Log in</a>
+            <a class="btn btn-primary" href="signup.php">Sign up free</a>
+        </div>
         <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="site-links" data-nav-toggle>
             <span></span><span></span><span></span>
         </button>
     </div>
 </header>
 
-<main class="landing-main">
+<main class="landing-main" id="top">
     <!-- ============================ Hero ============================ -->
     <section class="l-hero">
         <div class="l-container l-hero-grid">
@@ -115,7 +139,7 @@ require __DIR__ . '/includes/header.php';
     </section>
 
     <!-- ============================ Impact numbers ============================ -->
-    <section class="l-numbers">
+    <section class="l-numbers" id="impact">
         <div class="l-container l-numbers-grid">
             <div class="l-number scroll-reveal"><strong data-count="<?= (int) $numbers['plates'] ?>"><?= (int) $numbers['plates'] ?></strong><span>plates of food saved</span></div>
             <div class="l-number scroll-reveal"><strong data-count="<?= (int) $numbers['pickups'] ?>"><?= (int) $numbers['pickups'] ?></strong><span>pickups completed</span></div>
@@ -227,7 +251,6 @@ require __DIR__ . '/includes/header.php';
     </section>
 
     <!-- ============================ Available now ============================ -->
-    <?php if ($preview): ?>
     <section class="l-section l-section-tint" id="now">
         <div class="l-container">
             <div class="l-heading scroll-reveal">
@@ -235,6 +258,14 @@ require __DIR__ . '/includes/header.php';
                 <h2>Food waiting to be rescued</h2>
                 <p>A live look at what donors have posted. Log in as a verified NGO or volunteer to claim it.</p>
             </div>
+            <?php if (!$preview): ?>
+            <div class="empty scroll-reveal">
+                <span class="empty-icon"><?= icon('inbox') ?></span>
+                <h3>Nothing open right now</h3>
+                <p>New food appears here the moment a donor posts it. Have something to share?</p>
+                <a class="btn btn-primary" href="signup.php?role=donor">Donate surplus food</a>
+            </div>
+            <?php else: ?>
             <div class="l-preview">
                 <?php foreach ($preview as $p): ?>
                 <?php [, , $photo] = category_style($p['category']); [$left, $tone] = time_left($p['pickup_until']); ?>
@@ -257,9 +288,9 @@ require __DIR__ . '/includes/header.php';
                 </article>
                 <?php endforeach; ?>
             </div>
+            <?php endif; ?>
         </div>
     </section>
-    <?php endif; ?>
 
     <!-- ============================ Why it matters ============================ -->
     <section class="l-section">
@@ -332,10 +363,11 @@ require __DIR__ . '/includes/header.php';
             <a href="signup.php?role=ngo">Register an NGO</a>
             <a href="signup.php?role=volunteer">Volunteer</a>
         </div>
-        <div>
-            <h4>Account</h4>
-            <a href="login.php">Log in</a>
-            <a href="signup.php">Sign up</a>
+        <div id="contact">
+            <h4>Contact</h4>
+            <a href="mailto:hello@saveandserve.test"><?= icon('mail') ?> hello@saveandserve.test</a>
+            <a href="login.php"><?= icon('user') ?> Log in</a>
+            <a href="signup.php"><?= icon('plus') ?> Create an account</a>
         </div>
     </div>
     <div class="l-container site-footer-bottom">
