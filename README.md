@@ -42,7 +42,7 @@ See [PRD.md](PRD.md) for requirements and [docs/erd.mmd](docs/erd.mmd) for the d
 - **Mobile bottom tab bar** on phones, with a raised button for each role's main action.
 - **Post detail page** with a **history timeline**: who posted, claimed, cancelled or collected, and when.
 - **Impact dashboard** with charts: plates saved, success rate, average time to claim, a 14-day activity chart, posts by category, outcomes, and top donors and collectors.
-- **Profile page** to edit name, phone and address, and to change the password.
+- **Profile page** with an identity header (role, verification badge, profile-completeness ring), a section menu, and forms to edit name, phone and address and change the password (with a strength meter and an "unsaved changes" hint).
 - Responsive layout that works on phones.
 
 ## How a post moves

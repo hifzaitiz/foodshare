@@ -155,6 +155,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $verifiedFlag = $role === 'ngo' ? $ngo : ($role === 'volunteer' ? $user : null);
+$verifyState  = null;
+if ($verifiedFlag) {
+    $verifyState = (int) $verifiedFlag['is_verified'] === 1 ? 'verified' : ($verifiedFlag['rejected_at'] ? 'rejected' : 'pending');
+}
+
+// ---- Profile completeness: what helps people reach you ----
+$checks = [
+    ['Name', trim((string) $user['full_name']) !== '', '#details'],
+    ['Phone number', trim((string) $user['phone']) !== '', '#details'],
+    ['Your address', (string) $user['city'] !== '', '#address'],
+];
+if ($role === 'donor') {
+    $checks[] = ['Organization name', trim((string) $user['organization_name']) !== '', '#details'];
+}
+if ($ngo) {
+    $checks[] = ['NGO office address', (string) $ngo['city'] !== '', '#ngo'];
+}
+if ($verifyState) {
+    $checks[] = ['Verified by an admin', $verifyState === 'verified', null];
+}
+$done       = count(array_filter($checks, fn ($c) => $c[1]));
+$completion = (int) round($done / count($checks) * 100);
+
+$roleLabel = $role === 'ngo' ? 'NGO' : ucfirst($role);
+$cityLine  = trim(($user['area'] ? $user['area'] . ', ' : '') . (string) $user['city'], ', ');
 
 $flash = $_SESSION['flash'] ?? null;
 unset($_SESSION['flash']);
@@ -163,14 +188,8 @@ $csrf = csrf_token();
 $pageTitle = 'Profile';
 require __DIR__ . '/includes/header.php';
 ?>
-<main class="content">
-    <header class="page-head">
-        <div>
-            <p class="eyebrow"><a href="home.php">Dashboard</a> / Profile</p>
-            <h1>Your profile</h1>
-            <p class="muted">Keep your contact details up to date so donors and collectors can reach you.</p>
-        </div>
-    </header>
+<main class="content profile-page">
+    <p class="eyebrow"><a href="home.php">Dashboard</a> / Profile</p>
 
     <?php if ($flash): ?>
         <?php $ok = $flash['type'] === 'success'; ?>
@@ -179,35 +198,57 @@ require __DIR__ . '/includes/header.php';
         </div>
     <?php endif; ?>
 
-    <div class="profile-layout">
-        <aside class="card profile-card">
-            <span class="avatar avatar-xl avatar-<?= e($role) ?>"><?= e(initials($user['full_name'])) ?></span>
-            <h2><?= e($user['full_name']) ?></h2>
-            <p class="muted small"><?= e($user['email']) ?></p>
-            <span class="tag"><?= $role === 'ngo' ? 'NGO' : e(ucfirst($role)) ?></span>
-            <dl class="facts facts-1">
-                <div><dt><?= icon('calendar') ?> Member since</dt><dd><?= e(date('d M Y', strtotime($user['created_at']))) ?></dd></div>
-                <?php if ($verifiedFlag): ?>
-                <div><dt><?= icon('shield') ?> Verification</dt><dd>
-                    <?php if ((int) $verifiedFlag['is_verified'] === 1): ?><span class="status status-available">Verified</span>
-                    <?php elseif ($verifiedFlag['rejected_at']): ?><span class="status status-expired">Rejected</span>
-                    <?php else: ?><span class="status status-claimed">Pending</span><?php endif; ?>
-                </dd></div>
-                <?php endif; ?>
-                <?php if ($ngo): ?>
-                <div><dt><?= icon('building') ?> Organisation</dt><dd><?= e($ngo['name']) ?><small>Reg. no. <?= e($ngo['registration_no']) ?></small>
-                    <?php if ($ngo['city']): ?><small><?= e($ngo['address']) ?>, <?= e(trim(($ngo['area'] ? $ngo['area'] . ', ' : '') . $ngo['city'])) ?></small><?php endif; ?></dd></div>
-                <?php endif; ?>
-            </dl>
+    <!-- Identity header: who you are, how complete your profile is, what you have done -->
+    <section class="pf-hero pf-<?= e($role) ?>" aria-labelledby="pfName">
+        <div class="pf-id">
+            <span class="pf-avatar"><?= e(initials($user['full_name'])) ?></span>
+            <div class="pf-who">
+                <div class="pf-badges">
+                    <span class="pf-role"><?= e($roleLabel) ?></span>
+                    <?php if ($verifyState === 'verified'): ?><span class="pf-verify is-ok"><?= icon('shield') ?> Verified</span>
+                    <?php elseif ($verifyState === 'rejected'): ?><span class="pf-verify is-bad"><?= icon('x') ?> Not approved</span>
+                    <?php elseif ($verifyState === 'pending'): ?><span class="pf-verify is-wait"><?= icon('clock') ?> Waiting for admin</span><?php endif; ?>
+                </div>
+                <h1 id="pfName"><?= e($user['full_name']) ?></h1>
+                <ul class="pf-meta">
+                    <li><?= icon('mail') ?><?= e($user['email']) ?></li>
+                    <?php if ($user['phone']): ?><li><?= icon('phone') ?><?= e($user['phone']) ?></li><?php endif; ?>
+                    <?php if ($cityLine !== ''): ?><li><?= icon('pin') ?><?= e($cityLine) ?></li><?php endif; ?>
+                    <li><?= icon('calendar') ?>Member since <?= e(date('M Y', strtotime($user['created_at']))) ?></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="pf-meter" style="--p: <?= $completion ?>">
+            <div class="pf-ring" role="img" aria-label="Profile <?= $completion ?>% complete"><strong><?= $completion ?><small>%</small></strong></div>
+            <div>
+                <p class="pf-meter-title"><?= $completion === 100 ? 'Profile complete' : 'Profile ' . $completion . '% complete' ?></p>
+                <p class="pf-meter-sub"><?= $done ?> of <?= count($checks) ?> done<?= $completion < 100 ? '. Finish it so people can reach you.' : '.' ?></p>
+            </div>
+        </div>
+
+    </section>
+
+    <div class="pf-layout">
+        <aside class="pf-side">
+            <nav class="pf-nav card" aria-label="Profile sections">
+                <p class="pf-side-title">Settings</p>
+                <a href="#details"><?= icon('user') ?> Personal details</a>
+                <a href="#address"><?= icon('pin') ?> Address</a>
+                <?php if ($ngo): ?><a href="#ngo"><?= icon('building') ?> NGO office</a><?php endif; ?>
+                <a href="#security"><?= icon('lock') ?> Password</a>
+            </nav>
+
         </aside>
 
-        <div>
-            <form method="post" class="card form-card" id="profileForm" novalidate>
+        <div class="pf-main">
+            <form method="post" class="card form-card pf-card" id="profileForm" novalidate data-dirty-watch>
                 <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
                 <input type="hidden" name="form" value="details">
 
-                <fieldset class="form-section">
+                <fieldset class="form-section" id="details">
                     <legend><span class="step"><?= icon('user') ?></span> Personal details</legend>
+                    <p class="pf-help">Your name and phone are shown to the people you share food with.</p>
                     <?php if ($errors): ?>
                         <div class="alert alert-error"><?= icon('alert') ?><ul><?php foreach ($errors as $err): ?><li><?= e($err) ?></li><?php endforeach; ?></ul></div>
                     <?php endif; ?>
@@ -215,27 +256,31 @@ require __DIR__ . '/includes/header.php';
                     <div class="row-2">
                         <div>
                             <label for="full_name">Full name</label>
-                            <input type="text" id="full_name" name="full_name" value="<?= e($old['full_name']) ?>" required>
+                            <input type="text" id="full_name" name="full_name" value="<?= e($old['full_name']) ?>" maxlength="100" required>
                         </div>
                         <div>
-                            <label for="phone">Phone <span class="opt">shown to people you share food with</span></label>
+                            <label for="phone">Phone</label>
                             <input type="tel" id="phone" name="phone" value="<?= e($old['phone']) ?>" placeholder="0300 1234567">
                         </div>
                     </div>
 
                     <label for="email">Email <span class="opt">used to log in, cannot be changed</span></label>
-                    <input type="email" id="email" value="<?= e($user['email']) ?>" disabled>
+                    <div class="pf-locked">
+                        <input type="email" id="email" value="<?= e($user['email']) ?>" disabled>
+                        <?= icon('lock') ?>
+                    </div>
 
                     <?php if ($role === 'donor'): ?>
                         <label for="organization_name">Organization name <span class="opt">optional</span></label>
-                        <input type="text" id="organization_name" name="organization_name" value="<?= e($old['organization_name']) ?>" placeholder="e.g. Spice Garden Restaurant">
+                        <input type="text" id="organization_name" name="organization_name" value="<?= e($old['organization_name']) ?>" maxlength="150" placeholder="e.g. Spice Garden Restaurant">
                     <?php endif; ?>
                 </fieldset>
 
-                <fieldset class="form-section">
+                <fieldset class="form-section" id="address">
                     <legend><span class="step"><?= icon('pin') ?></span> Address <span class="opt">optional</span></legend>
-                    <label for="address">Street address</label>
-                    <input type="text" id="address" name="address" value="<?= e($old['address']) ?>" placeholder="Street, building, landmark">
+                    <p class="pf-help">Leave all three empty if you don't want to save an address.</p>
+                    <label for="address_line">Street address</label>
+                    <input type="text" id="address_line" name="address" value="<?= e($old['address']) ?>" placeholder="Street, building, landmark">
                     <div class="row-2">
                         <div>
                             <label for="area">Area</label>
@@ -248,22 +293,32 @@ require __DIR__ . '/includes/header.php';
                     </div>
                 </fieldset>
 
-                <div class="form-actions">
+                <div class="form-actions pf-actions">
+                    <span class="pf-dirty" data-dirty-note hidden><?= icon('edit') ?> Unsaved changes</span>
                     <button type="submit" class="btn btn-primary"><?= icon('check') ?> Save details</button>
                 </div>
             </form>
 
             <?php if ($ngo): ?>
-            <form method="post" class="card form-card" id="ngoForm" novalidate>
+            <form method="post" class="card form-card pf-card" id="ngoForm" novalidate data-dirty-watch>
                 <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
                 <input type="hidden" name="form" value="ngo">
 
-                <fieldset class="form-section">
-                    <legend><span class="step"><?= icon('building') ?></span> <?= e($ngo['name']) ?> office address</legend>
+                <fieldset class="form-section" id="ngo">
+                    <legend><span class="step"><?= icon('building') ?></span> NGO office</legend>
+                    <div class="pf-org">
+                        <div>
+                            <strong><?= e($ngo['name']) ?></strong>
+                            <span>Registration no. <code><?= e($ngo['registration_no']) ?></code></span>
+                        </div>
+                        <?php if ($verifyState === 'verified'): ?><span class="status status-available">Verified</span>
+                        <?php elseif ($verifyState === 'rejected'): ?><span class="status status-expired">Rejected</span>
+                        <?php else: ?><span class="status status-claimed">Pending</span><?php endif; ?>
+                    </div>
                     <?php if ($ngoErrors): ?>
                         <div class="alert alert-error"><?= icon('alert') ?><ul><?php foreach ($ngoErrors as $err): ?><li><?= e($err) ?></li><?php endforeach; ?></ul></div>
                     <?php endif; ?>
-                    <p class="muted small">Shown to the admin when your NGO is verified.</p>
+                    <p class="pf-help">The admin sees this address when verifying your NGO.</p>
                     <label for="ngo_address">Street address</label>
                     <input type="text" id="ngo_address" name="ngo_address" value="<?= e($ngoOld['ngo_address']) ?>" placeholder="Street, building, landmark" required>
                     <div class="row-2">
@@ -278,18 +333,20 @@ require __DIR__ . '/includes/header.php';
                     </div>
                 </fieldset>
 
-                <div class="form-actions">
+                <div class="form-actions pf-actions">
+                    <span class="pf-dirty" data-dirty-note hidden><?= icon('edit') ?> Unsaved changes</span>
                     <button type="submit" class="btn btn-primary"><?= icon('check') ?> Save NGO address</button>
                 </div>
             </form>
             <?php endif; ?>
 
-            <form method="post" class="card form-card" id="passwordForm" novalidate>
+            <form method="post" class="card form-card pf-card" id="passwordForm" novalidate>
                 <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
                 <input type="hidden" name="form" value="password">
 
-                <fieldset class="form-section">
-                    <legend><span class="step"><?= icon('lock') ?></span> Change password</legend>
+                <fieldset class="form-section" id="security">
+                    <legend><span class="step"><?= icon('lock') ?></span> Password</legend>
+                    <p class="pf-help">Use at least 8 characters. Changing it keeps you logged in here.</p>
                     <?php if ($pwErrors): ?>
                         <div class="alert alert-error"><?= icon('alert') ?><ul><?php foreach ($pwErrors as $err): ?><li><?= e($err) ?></li><?php endforeach; ?></ul></div>
                     <?php endif; ?>
@@ -303,13 +360,18 @@ require __DIR__ . '/includes/header.php';
                         <div>
                             <label for="new_password">New password</label>
                             <div class="pw-wrap">
-                                <input type="password" id="new_password" name="new_password" placeholder="Min. 8 characters" autocomplete="new-password" required>
+                                <input type="password" id="new_password" name="new_password" placeholder="Min. 8 characters" autocomplete="new-password" required aria-describedby="pwStrength">
                                 <button type="button" class="pw-toggle" data-target="new_password">Show</button>
+                            </div>
+                            <div class="pw-meter" id="pwStrength" data-pw-meter="new_password" aria-live="polite">
+                                <span class="pw-bars"><i></i><i></i><i></i><i></i></span>
+                                <span class="pw-label">Enter a new password</span>
                             </div>
                         </div>
                         <div>
                             <label for="confirm_password">Confirm new password</label>
                             <input type="password" id="confirm_password" name="confirm_password" autocomplete="new-password" required>
+                            <p class="pw-match" data-pw-match="new_password:confirm_password" aria-live="polite"></p>
                         </div>
                     </div>
                 </fieldset>

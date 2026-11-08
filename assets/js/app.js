@@ -199,4 +199,65 @@
     } else {
         counters.forEach(countUp);
     }
+    // ---- Profile: highlight the section in view in the side menu ----
+    var pfLinks = document.querySelectorAll('.pf-nav a[href^="#"]');
+    if (pfLinks.length && 'IntersectionObserver' in window) {
+        var setActive = function (id) {
+            pfLinks.forEach(function (a) { a.classList.toggle('is-active', a.getAttribute('href') === '#' + id); });
+        };
+        var spy = new IntersectionObserver(function (entries) {
+            entries.forEach(function (en) { if (en.isIntersecting) { setActive(en.target.id); } });
+        }, { rootMargin: '-30% 0px -60% 0px' });
+        pfLinks.forEach(function (a) {
+            var target = document.getElementById(a.getAttribute('href').slice(1));
+            if (target) { spy.observe(target); }
+        });
+        setActive(pfLinks[0].getAttribute('href').slice(1));
+    }
+
+    // ---- Forms that show "Unsaved changes" once a field is edited ----
+    document.querySelectorAll('[data-dirty-watch]').forEach(function (form) {
+        var note = form.querySelector('[data-dirty-note]');
+        if (!note) { return; }
+        var fields = form.querySelectorAll('input:not([type=hidden]):not([disabled]), textarea, select');
+        var start = Array.prototype.map.call(fields, function (f) { return f.value; });
+        form.addEventListener('input', function () {
+            var dirty = Array.prototype.some.call(fields, function (f, i) { return f.value !== start[i]; });
+            note.hidden = !dirty;
+        });
+    });
+
+    // ---- Password strength meter and "passwords match" hint ----
+    document.querySelectorAll('[data-pw-meter]').forEach(function (meter) {
+        var input = document.getElementById(meter.getAttribute('data-pw-meter'));
+        var text = meter.querySelector('.pw-label');
+        if (!input || !text) { return; }
+        var names = ['Enter a new password', 'Too short', 'Weak', 'Good', 'Strong'];
+        input.addEventListener('input', function () {
+            var v = input.value, level = 0;
+            if (v.length > 0) {
+                level = 1;
+                if (v.length >= 8) {
+                    var kinds = [/[a-z]/, /[A-Z]/, /[0-9]/, /[^A-Za-z0-9]/].filter(function (r) { return r.test(v); }).length;
+                    level = 2 + (kinds >= 3 ? 1 : 0) + (kinds >= 3 && v.length >= 12 ? 1 : 0);
+                }
+            }
+            meter.setAttribute('data-level', level);
+            text.textContent = names[level];
+        });
+    });
+    document.querySelectorAll('[data-pw-match]').forEach(function (out) {
+        var ids = out.getAttribute('data-pw-match').split(':');
+        var a = document.getElementById(ids[0]), b = document.getElementById(ids[1]);
+        if (!a || !b) { return; }
+        var check = function () {
+            out.classList.remove('is-ok', 'is-bad');
+            if (!b.value) { out.textContent = ''; return; }
+            var same = a.value === b.value;
+            out.textContent = same ? 'Passwords match' : 'Passwords don’t match yet';
+            out.classList.add(same ? 'is-ok' : 'is-bad');
+        };
+        a.addEventListener('input', check);
+        b.addEventListener('input', check);
+    });
 })();
