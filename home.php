@@ -260,8 +260,9 @@ require __DIR__ . '/includes/header.php';
         <?php foreach ($lanes as [$laneKey, $laneStep, $laneTitle, $laneHelp, $laneItems]): ?>
         <section class="lane lane-<?= $laneKey ?>" aria-labelledby="lane-<?= $laneKey ?>">
             <header class="lane-head">
-                <span class="lane-step">Step <?= $laneStep ?> of 3</span>
+                
                 <div class="lane-title-row">
+                    <span class="lane-dot"></span>
                     <h2 id="lane-<?= $laneKey ?>"><?= e($laneTitle) ?></h2>
                     <span class="lane-count"><?= count($laneItems) ?></span>
                 </div>
@@ -330,8 +331,8 @@ require __DIR__ . '/includes/header.php';
 
         <section class="lane lane-done" aria-labelledby="lane-done">
             <header class="lane-head">
-                <span class="lane-step">Step 3 of 3</span>
                 <div class="lane-title-row">
+                    <span class="lane-dot"></span>
                     <h2 id="lane-done">Recently finished</h2>
                     <span class="lane-count"><?= count($past) ?></span>
                 </div>

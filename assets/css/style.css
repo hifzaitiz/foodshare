@@ -1257,15 +1257,13 @@ a:focus-visible, button:focus-visible, .chip:focus-visible, summary:focus-visibl
 input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; }   /* inputs already show a ring */
 .role-card input:focus-visible + .role-card-body { outline: 3px solid var(--primary); outline-offset: 2px; }
 
-/* Lane headers: make the three steps obvious at a glance */
-.lane { --lane: var(--primary); --lane-soft: var(--primary-50); padding: 0 .9rem .9rem; overflow: hidden; border-top: 5px solid var(--lane); }
-.lane-next { --lane: var(--turmeric); --lane-soft: var(--amber-50); }
-.lane-done { --lane: var(--blue); --lane-soft: var(--blue-50); }
-.lane-head { display: grid; gap: .35rem; margin: 0 -.9rem; padding: 1rem 1.1rem 1.05rem; background: var(--lane-soft); border-bottom: 1px solid var(--line); }
-.lane-step { font-family: var(--font-mono); font-size: .68rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--text); opacity: .75; }
-.lane-title-row { display: flex; align-items: center; gap: .7rem; }
-.lane-title-row h2 { font-size: 1.4rem; line-height: 1.15; margin: 0; flex: 1; min-width: 0; color: var(--ink); }
-.lane-count { display: grid; place-items: center; min-width: 34px; height: 34px; padding: 0 .5rem; border-radius: var(--radius); background: var(--lane); color: #fff; font: 700 1rem var(--font-mono); }
-.lane-next .lane-count { color: #1b1a17; }
-.lane-help { margin: 0; font-size: .84rem; line-height: 1.4; color: var(--text); }
-.lane-done .lane-count { color: var(--surface); }
+/* Lane headers: a calm task-board style (dot, title, quiet count, muted description) */
+.lane { --lane: var(--primary); padding: 0 .85rem .85rem; overflow: hidden; border-top: 2px solid var(--lane); background: var(--surface-2); }
+.lane-next { --lane: var(--turmeric); }
+.lane-done { --lane: var(--blue); }
+.lane-head { display: grid; gap: .3rem; margin: 0 -.85rem; padding: 1rem 1.05rem .9rem; background: transparent; border-bottom: 1px solid var(--line); }
+.lane-title-row { display: flex; align-items: center; gap: .6rem; }
+.lane-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--lane); flex-shrink: 0; }
+.lane-title-row h2 { font-size: 1.22rem; font-weight: 700; line-height: 1.2; letter-spacing: -.01em; margin: 0; flex: 1; min-width: 0; color: var(--ink); }
+.lane-count { font: 600 .85rem var(--font-mono); color: var(--muted); }
+.lane-help { margin: 0 0 0 1.15rem; font-size: .82rem; line-height: 1.45; color: var(--muted); }
