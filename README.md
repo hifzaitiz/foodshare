@@ -168,7 +168,7 @@ Bundled in `assets/js/vendor/` so everything works offline:
 - [Chart.js](https://www.chartjs.org) 4.4.1, MIT License
 - [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) 1.4.4 by Kazuhiko Arase, MIT License
 
-Fonts: Bricolage Grotesque and DM Sans from Google Fonts (SIL Open Font License).
+Fonts: Fraunces and DM Sans from Google Fonts (SIL Open Font License).
 
 ## Image credits
 The logo (`logo.svg`, `logo-full.svg`) was made for this project. Photos in `assets/img/` are from [Unsplash](https://unsplash.com) and used under the
