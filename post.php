@@ -10,7 +10,7 @@ $postId = (int) ($_GET['id'] ?? 0);
 $stmt = $pdo->prepare(
     "SELECT p.*, fc.name AS category, l.address, l.area, l.city,
             COALESCE(d.organization_name, d.full_name) AS donor, d.phone AS donor_phone,
-            cl.claimed_by, cl.claimed_at, cl.collected_at,
+            cl.id AS claim_id, cl.claimed_by, cl.claimed_at, cl.collected_at,
             u.full_name AS claimer, u.phone AS claimer_phone, n.name AS claimer_ngo
      FROM food_posts p
      JOIN users d ON d.id = p.donor_id
@@ -66,6 +66,20 @@ if ($shown === 'expired') {
 }
 
 $eligible = in_array($role, ['ngo', 'volunteer'], true) && can_claim($pdo, $userId, $role);
+
+// Pickup code: the claimer sees it (and a QR); the donor types it in, or opens the QR link
+// which pre-fills it. The QR points back to this page with ?code=...
+$code = $qrUrl = null;
+if ($isClaimer && $post['status'] === 'claimed') {
+    $code  = pickup_code((int) $post['claim_id'], (int) $post['id'], (int) $post['claimed_by'], $post['claimed_at']);
+    $base  = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST']
+           . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+    $qrUrl = $base . '/post.php?id=' . (int) $post['id'] . '&code=' . $code;
+}
+$prefill = preg_replace('/\D/', '', (string) ($_GET['code'] ?? ''));
+
+$flash = $_SESSION['flash'] ?? null;
+unset($_SESSION['flash']);
 [, , $photo] = category_style($post['category']);
 [$left, $leftTone] = time_left($post['pickup_until']);
 $csrf = csrf_token();
@@ -83,6 +97,13 @@ require __DIR__ . '/includes/header.php';
         </div>
         <span class="status status-lg status-<?= e($shown) ?>"><?= e($shown) ?></span>
     </header>
+
+    <?php if ($flash): ?>
+        <?php $ok = $flash['type'] === 'success'; ?>
+        <div class="alert alert-<?= $ok ? 'success' : 'error' ?>" <?= $ok ? 'data-autohide' : '' ?>>
+            <?= icon($ok ? 'check-circle' : 'alert') ?><span><?= e($flash['message']) ?></span>
+        </div>
+    <?php endif; ?>
 
     <div class="detail-layout">
         <div>
@@ -116,10 +137,17 @@ require __DIR__ . '/includes/header.php';
                         </form>
                     <?php endif; ?>
                     <?php if ($isOwner && $post['status'] === 'claimed'): ?>
-                        <form method="post" action="collect.php" class="inline-form">
+                        <form method="post" action="collect.php" class="code-form code-form-lg" id="pickup">
                             <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
                             <input type="hidden" name="post_id" value="<?= (int) $post['id'] ?>">
-                            <button class="btn btn-primary" type="submit"><?= icon('check') ?> Mark collected</button>
+                            <input type="hidden" name="from" value="post">
+                            <label for="code">Pickup code from <?= e($post['claimer']) ?></label>
+                            <div class="code-row">
+                                <input type="text" id="code" name="code" class="code-input" inputmode="numeric" autocomplete="off" maxlength="7"
+                                       placeholder="000 000" value="<?= e($prefill) ?>" required>
+                                <button class="btn btn-primary" type="submit"><?= icon('check') ?> Confirm pickup</button>
+                            </div>
+                            <p class="hint"><?= icon('shield') ?> Ask the collector for the 6-digit code on their claim, or scan their QR code.</p>
                         </form>
                     <?php endif; ?>
                     <?php if ($isClaimer && $post['status'] === 'claimed'): ?>
@@ -141,7 +169,17 @@ require __DIR__ . '/includes/header.php';
             </section>
         </div>
 
-        <aside class="card">
+        <aside>
+            <?php if ($code): ?>
+            <section class="card pickup-card" id="pickup">
+                <h2><?= icon('lock') ?> Your pickup code</h2>
+                <p class="muted small">Show this to the donor when you collect the food. They enter it (or scan the QR) to confirm the handover.</p>
+                <div class="pickup-code" aria-label="Pickup code"><?= e(format_code($code)) ?></div>
+                <div class="qr-box" data-qr="<?= e($qrUrl) ?>" aria-label="QR code for the pickup"></div>
+                <p class="hint"><?= icon('alert') ?> Don't share this code before the pickup.</p>
+            </section>
+            <?php endif; ?>
+        <section class="card">
             <h2>History</h2>
             <p class="muted small">Every status change is recorded with who made it.</p>
             <ol class="timeline">
@@ -155,7 +193,12 @@ require __DIR__ . '/includes/header.php';
                 </li>
                 <?php endforeach; ?>
             </ol>
+        </section>
         </aside>
     </div>
 </main>
+<?php if ($code): ?>
+<script src="assets/js/vendor/qrcode.js"></script>
+<script src="assets/js/pickup.js"></script>
+<?php endif; ?>
 <?php require __DIR__ . '/includes/footer.php'; ?>

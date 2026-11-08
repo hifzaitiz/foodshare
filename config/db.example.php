@@ -5,6 +5,9 @@ const DB_NAME = 'food_share';
 const DB_USER = 'your_mysql_user';
 const DB_PASS = 'your_mysql_password';
 
+// Secret key for pickup codes. Keep it private and use a long random string.
+const APP_SECRET = 'change-me-to-a-long-random-string';
+
 function db(): PDO
 {
     static $pdo = null;

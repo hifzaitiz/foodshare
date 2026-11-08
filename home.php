@@ -80,7 +80,7 @@ if ($role === 'ngo' || $role === 'volunteer') {
     $available = $stmt->fetchAll();
 
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.title, p.quantity, p.unit, p.pickup_until, p.status, c.claimed_at, c.collected_at, fc.name AS category,
+        'SELECT p.id, p.title, p.quantity, p.unit, p.pickup_until, p.status, c.id AS claim_id, c.claimed_at, c.collected_at, fc.name AS category,
                 COALESCE(d.organization_name, d.full_name) AS donor, d.phone AS donor_phone,
                 l.address, l.area, l.city, cn.name AS claim_ngo
          FROM claims c JOIN food_posts p ON p.id = c.post_id
@@ -241,10 +241,11 @@ require __DIR__ . '/includes/header.php';
                         </div>
                         <?php endif; ?>
                         <?php if ($p['status'] === 'claimed'): ?>
-                        <form method="post" action="collect.php" class="inline-form">
+                        <form method="post" action="collect.php" class="code-form">
                             <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
                             <input type="hidden" name="post_id" value="<?= (int) $p['id'] ?>">
-                            <button class="btn btn-primary btn-sm" type="submit"><?= icon('check') ?> Mark collected</button>
+                            <input type="text" name="code" class="code-input" inputmode="numeric" autocomplete="off" maxlength="7" placeholder="Code" aria-label="Pickup code from the collector" required>
+                            <button class="btn btn-primary btn-sm" type="submit"><?= icon('check') ?> Confirm</button>
                         </form>
                         <?php endif; ?>
                     </td>
@@ -375,7 +376,12 @@ require __DIR__ . '/includes/header.php';
                     </td>
                     <td><?= e(fmt_time($c['pickup_until'])) ?>
                         <?php if ($c['status'] === 'claimed'): ?><small class="time-text t-<?= $leftTone === 'over' ? 'urgent' : $leftTone ?>"><?= e($leftTone === 'over' ? 'Pickup overdue' : $left) ?></small><?php endif; ?></td>
-                    <td><span class="status status-<?= e($c['status']) ?>"><?= e($c['status']) ?></span></td>
+                    <td><span class="status status-<?= e($c['status']) ?>"><?= e($c['status']) ?></span>
+                        <?php if ($c['status'] === 'claimed'): ?>
+                        <a class="code-chip" href="post.php?id=<?= (int) $c['id'] ?>#pickup" title="Show this code (or the QR) to the donor at pickup">
+                            <?= icon('lock') ?><?= e(format_code(pickup_code((int) $c['claim_id'], (int) $c['id'], $userId, $c['claimed_at']))) ?>
+                        </a>
+                        <?php endif; ?></td>
                     <td class="cell-action">
                         <?php if ($c['status'] === 'claimed'): ?>
                         <form method="post" action="cancel.php" class="inline-form">

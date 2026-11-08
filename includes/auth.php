@@ -100,3 +100,53 @@ function login_user(array $user): void
     $_SESSION['name']    = $user['full_name'];
     $_SESSION['role']    = $user['role'];
 }
+
+// ---------------------------------------------------------------------------
+// Pickup codes: a 6-digit code the claimer shows the donor at handover.
+// It is calculated (HMAC) from the claim, so nothing extra is stored: a new
+// claim gets a new code, and without APP_SECRET nobody can work it out.
+// ---------------------------------------------------------------------------
+function app_secret(): string
+{
+    return defined('APP_SECRET') && APP_SECRET !== 'change-me-to-a-long-random-string'
+        ? APP_SECRET
+        : hash('sha256', DB_NAME . '|' . DB_USER . '|' . DB_PASS);   // fallback if not configured
+}
+
+function pickup_code(int $claimId, int $postId, int $claimedBy, string $claimedAt): string
+{
+    $mac = hash_hmac('sha256', "$claimId|$postId|$claimedBy|$claimedAt", app_secret());
+    return str_pad((string) (hexdec(substr($mac, 0, 8)) % 1000000), 6, '0', STR_PAD_LEFT);
+}
+
+// "482731" -> "482 731" (easier to read aloud)
+function format_code(string $code): string
+{
+    return substr($code, 0, 3) . ' ' . substr($code, 3);
+}
+
+// Limit wrong codes per post: 5 tries, then locked for 10 minutes (per session).
+const CODE_MAX_TRIES = 5;
+const CODE_LOCK_SECONDS = 600;
+
+function code_locked_for(int $postId): int
+{
+    $t = $_SESSION['code_tries'][$postId] ?? null;
+    if (!$t || $t['count'] < CODE_MAX_TRIES) {
+        return 0;
+    }
+    $left = $t['since'] + CODE_LOCK_SECONDS - time();
+    if ($left <= 0) {
+        unset($_SESSION['code_tries'][$postId]);
+        return 0;
+    }
+    return $left;
+}
+
+function code_failed(int $postId): void
+{
+    $t = $_SESSION['code_tries'][$postId] ?? ['count' => 0, 'since' => time()];
+    $t['count']++;
+    $t['since'] = time();
+    $_SESSION['code_tries'][$postId] = $t;
+}
