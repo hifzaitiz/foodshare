@@ -35,6 +35,35 @@ if ($editId > 0) {
     }
 }
 
+// "Post again": post_food.php?copy=N pre-fills a NEW post from one of the donor's own posts
+// (any status), with a fresh pickup window starting now.
+$copyId = (int) ($_GET['copy'] ?? 0);
+if ($copyId > 0 && $editId === 0 && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $stmt = $pdo->prepare(
+        'SELECT p.title, p.category_id, p.quantity, p.unit, p.description, l.address, l.area, l.city
+         FROM food_posts p LEFT JOIN locations l ON l.id = p.pickup_location_id
+         WHERE p.id = ? AND p.donor_id = ?'
+    );
+    $stmt->execute([$copyId, $_SESSION['user_id']]);
+    if ($source = $stmt->fetch()) {
+        foreach ($source as $k => $v) {
+            $old[$k] = (string) $v;
+        }
+        $old['pickup_from']  = date('Y-m-d\TH:i');
+        $old['pickup_until'] = date('Y-m-d\TH:i', time() + 3 * 3600);
+    }
+}
+
+// Shortcuts for a new post: the donor's last few different dishes, ready to post again.
+$recent = [];
+if ($editId === 0) {
+    $stmt = $pdo->prepare(
+        'SELECT MAX(id) AS id, title FROM food_posts WHERE donor_id = ? GROUP BY title ORDER BY MAX(created_at) DESC LIMIT 4'
+    );
+    $stmt->execute([$_SESSION['user_id']]);
+    $recent = $stmt->fetchAll();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_post();
     foreach ($old as $k => $_) {
@@ -153,6 +182,14 @@ require __DIR__ . '/includes/header.php';
 
     <div class="form-layout">
         <form method="post" id="postForm" class="card form-card" novalidate>
+            <?php if ($recent): ?>
+            <div class="post-again">
+                <span class="post-again-label"><?= icon('clock') ?> Post again:</span>
+                <?php foreach ($recent as $r): ?>
+                    <a class="chip<?= (int) $r['id'] === $copyId ? ' is-on' : '' ?>" href="post_food.php?copy=<?= (int) $r['id'] ?>"><?= e($r['title']) ?></a>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
             <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
 
             <fieldset class="form-section">
@@ -190,6 +227,13 @@ require __DIR__ . '/includes/header.php';
 
             <fieldset class="form-section">
                 <legend><span class="step">2</span> When can it be picked up?</legend>
+                <div class="time-chips" role="group" aria-label="Quick pickup windows">
+                    <span class="time-chips-label">Quick pick:</span>
+                    <button type="button" class="chip" data-window="2">Next 2 hours</button>
+                    <button type="button" class="chip" data-window="4">Next 4 hours</button>
+                    <button type="button" class="chip" data-window="midnight">Until midnight</button>
+                    <button type="button" class="chip" data-window="tomorrow">Tomorrow lunch</button>
+                </div>
                 <div class="row-2">
                     <div>
                         <label for="pickup_from">Pickup from</label>
@@ -231,7 +275,7 @@ require __DIR__ . '/includes/header.php';
                 <li><?= icon('clock') ?><span>Give at least <strong>2 hours</strong> in the pickup window so collectors can reach you.</span></li>
                 <li><?= icon('box') ?><span>Pack food in <strong>sealed containers</strong> and mention it in the description.</span></li>
                 <li><?= icon('pin') ?><span>Add a <strong>landmark</strong> to the address to avoid delays.</span></li>
-                <li><?= icon('check-circle') ?><span>When the food is picked up, press <strong>Mark collected</strong> on your dashboard.</span></li>
+                <li><?= icon('check-circle') ?><span>When the collector arrives, enter their <strong>6-digit pickup code</strong> on your dashboard to confirm the handover.</span></li>
             </ul>
         </aside>
     </div>

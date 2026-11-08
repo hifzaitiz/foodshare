@@ -369,7 +369,7 @@ require __DIR__ . '/includes/header.php';
                 <?php if ($p['shown'] === 'expired'): ?>
                     <a class="btn btn-outline btn-sm" href="post_food.php?id=<?= (int) $p['id'] ?>" title="Set a new pickup time"><?= icon('clock') ?> Repost</a>
                 <?php else: ?>
-                    <span class="history-spacer"></span>
+                    <a class="btn btn-ghost btn-sm" href="post_food.php?copy=<?= (int) $p['id'] ?>" title="Start a new post with the same details"><?= icon('plus') ?> Post again</a>
                 <?php endif; ?>
             </li>
             <?php endforeach; ?>
@@ -516,7 +516,10 @@ require __DIR__ . '/includes/header.php';
                 <div class="food-foot">
                     <div class="qty"><strong><?= e($p['quantity']) ?></strong><span><?= e($p['unit']) ?></span></div>
                     <?php if ($eligible): ?>
-                    <form method="post" action="claim.php" class="inline-form">
+                    <form method="post" action="claim.php" class="inline-form claim-form"
+                          data-title="<?= e($p['title']) ?>" data-qty="<?= e($p['quantity'] . ' ' . $p['unit']) ?>"
+                          data-place="<?= e(trim(($p['area'] ? $p['area'] . ', ' : '') . $p['city'])) ?> · <?= e($p['donor']) ?>"
+                          data-until="<?= e(date('g:i a', strtotime($p['pickup_until']))) ?>">
                         <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
                         <input type="hidden" name="post_id" value="<?= (int) $p['id'] ?>">
                         <button class="btn btn-primary" type="submit"><?= icon('hand') ?> Claim</button>

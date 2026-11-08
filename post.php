@@ -158,7 +158,10 @@ require __DIR__ . '/includes/header.php';
                         </form>
                     <?php endif; ?>
                     <?php if ($eligible && $shown === 'available'): ?>
-                        <form method="post" action="claim.php" class="inline-form">
+                        <form method="post" action="claim.php" class="inline-form claim-form"
+                              data-title="<?= e($post['title']) ?>" data-qty="<?= e($post['quantity'] . ' ' . $post['unit']) ?>"
+                              data-place="<?= e(trim(($post['area'] ? $post['area'] . ', ' : '') . $post['city'])) ?> · <?= e($post['donor']) ?>"
+                              data-until="<?= e(date('g:i a', strtotime($post['pickup_until']))) ?>">
                             <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
                             <input type="hidden" name="post_id" value="<?= (int) $post['id'] ?>">
                             <button class="btn btn-primary btn-lg" type="submit"><?= icon('hand') ?> Claim this food</button>
@@ -176,8 +179,29 @@ require __DIR__ . '/includes/header.php';
                 <p class="muted small">Show this to the donor when you collect the food. They enter it (or scan the QR) to confirm the handover.</p>
                 <div class="pickup-code" aria-label="Pickup code"><?= e(format_code($code)) ?></div>
                 <div class="qr-box" data-qr="<?= e($qrUrl) ?>" aria-label="QR code for the pickup"></div>
+                <button type="button" class="btn btn-ink btn-block pass-open" data-pass-open><?= icon('id') ?> Show full screen pass</button>
                 <p class="hint"><?= icon('alert') ?> Don't share this code before the pickup.</p>
             </section>
+
+            <!-- Full-screen "boarding pass" to hold up at the handover -->
+            <dialog class="pass" id="pass" aria-label="Pickup pass">
+                <div class="pass-top">
+                    <span class="pass-brand"><img src="assets/img/logo.svg" alt=""> Save &amp; Serve · Pickup pass</span>
+                    <button type="button" class="pass-close" data-pass-close aria-label="Close"><?= icon('x') ?></button>
+                </div>
+                <div class="pass-body">
+                    <p class="pass-label">Pickup code</p>
+                    <div class="pass-code"><?= e(format_code($code)) ?></div>
+                    <div class="qr-box pass-qr" data-qr="<?= e($qrUrl) ?>"></div>
+                    <dl class="pass-facts">
+                        <div><dt>Food</dt><dd><?= e($post['title']) ?> · <?= e($post['quantity']) ?> <?= e($post['unit']) ?></dd></div>
+                        <div><dt>From</dt><dd><?= e($post['donor']) ?></dd></div>
+                        <div><dt>Address</dt><dd><?= e(trim(($post['address'] ? $post['address'] . ', ' : '') . ($post['area'] ? $post['area'] . ', ' : '') . $post['city'])) ?></dd></div>
+                        <div><dt>Collect by</dt><dd><?= e(fmt_time($post['pickup_until'])) ?></dd></div>
+                    </dl>
+                </div>
+                <p class="pass-tip"><?= icon('alert') ?> Turn your screen brightness up so the donor can scan the QR.</p>
+            </dialog>
             <?php endif; ?>
         <section class="card">
             <h2>History</h2>

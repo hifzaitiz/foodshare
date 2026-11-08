@@ -89,6 +89,72 @@
         }
     }
 
+    // ---- Claim confirmation sheet: check the details before committing to a pickup ----
+    var claimForms = document.querySelectorAll('form.claim-form');
+    if (claimForms.length && typeof HTMLDialogElement === 'function') {
+        var sheet = document.createElement('dialog');
+        sheet.className = 'sheet';
+        sheet.setAttribute('aria-labelledby', 'sheet-title');
+        sheet.innerHTML =
+            '<p class="sheet-tag">Confirm your pickup</p>' +
+            '<h2 id="sheet-title"></h2>' +
+            '<dl class="sheet-facts"><div><dt>Quantity</dt><dd data-f="qty"></dd></div>' +
+            '<div><dt>Pick up from</dt><dd data-f="place"></dd></div>' +
+            '<div><dt>Collect before</dt><dd data-f="until"></dd></div></dl>' +
+            '<p class="sheet-ask"></p>' +
+            '<div class="sheet-actions"><button type="button" class="btn btn-outline" data-act="cancel">Not now</button>' +
+            '<button type="button" class="btn btn-primary" data-act="ok">Yes, claim it</button></div>';
+        document.body.appendChild(sheet);
+        var pending = null;
+        var fill = function (sel, text) { sheet.querySelector(sel).textContent = text; };
+        claimForms.forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                pending = form;
+                fill('#sheet-title', form.dataset.title);
+                fill('[data-f="qty"]', form.dataset.qty);
+                fill('[data-f="place"]', form.dataset.place);
+                fill('[data-f="until"]', form.dataset.until);
+                fill('.sheet-ask', 'Can you get there and collect it by ' + form.dataset.until + '? Only one person can claim it, so please only confirm if you can.');
+                sheet.showModal();
+                sheet.querySelector('[data-act="ok"]').focus();
+            });
+        });
+        sheet.querySelector('[data-act="cancel"]').addEventListener('click', function () { sheet.close(); });
+        sheet.addEventListener('click', function (e) { if (e.target === sheet) { sheet.close(); } });
+        sheet.querySelector('[data-act="ok"]').addEventListener('click', function () {
+            if (pending) { this.disabled = true; this.textContent = 'Claiming…'; pending.submit(); }   // form.submit() skips the submit event
+        });
+    }
+
+    // ---- Post food: quick pickup-window chips fill both datetime fields ----
+    var fromIn = document.getElementById('pickup_from'), untilIn = document.getElementById('pickup_until');
+    if (fromIn && untilIn) {
+        var local = function (d) {   // "2026-11-08T17:30" in the user's time zone
+            var p = function (n) { return ('0' + n).slice(-2); };
+            return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes());
+        };
+        document.querySelectorAll('[data-window]').forEach(function (chip) {
+            chip.addEventListener('click', function () {
+                var from = new Date(), until;
+                from.setSeconds(0, 0);
+                from.setMinutes(Math.ceil(from.getMinutes() / 5) * 5);   // round up to 5 minutes
+                var w = chip.getAttribute('data-window');
+                if (w === 'midnight') {
+                    until = new Date(from); until.setHours(23, 59, 0, 0);
+                } else if (w === 'tomorrow') {
+                    from = new Date(); from.setDate(from.getDate() + 1); from.setHours(12, 0, 0, 0);
+                    until = new Date(from); until.setHours(15, 0, 0, 0);
+                } else {
+                    until = new Date(from.getTime() + parseInt(w, 10) * 3600 * 1000);
+                }
+                fromIn.value = local(from);
+                untilIn.value = local(until);
+                document.querySelectorAll('[data-window]').forEach(function (c) { c.classList.toggle('is-on', c === chip); });
+            });
+        });
+    }
+
     // ---- Count-up numbers: <strong data-count="753">753</strong> ----
     function countUp(el) {
         var target = parseInt(el.getAttribute('data-count'), 10);
