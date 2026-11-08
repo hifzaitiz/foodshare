@@ -27,6 +27,41 @@
     tick();
     setInterval(tick, 30000);
 
+    // ---- Homepage navbar: mobile menu and shadow after scrolling ----
+    var nav = document.querySelector('[data-nav]');
+    if (nav) {
+        var toggle = nav.querySelector('[data-nav-toggle]');
+        toggle.addEventListener('click', function () {
+            var open = nav.classList.toggle('nav-open');
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        nav.querySelectorAll('.site-links a').forEach(function (a) {
+            a.addEventListener('click', function () { nav.classList.remove('nav-open'); toggle.setAttribute('aria-expanded', 'false'); });
+        });
+        var onScroll = function () { nav.classList.toggle('scrolled', window.scrollY > 10); };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+    }
+
+    // ---- Fade sections in as they scroll into view (staggered within a row) ----
+    var reveals = document.querySelectorAll('.scroll-reveal');
+    if (reveals.length) {
+        if (!('IntersectionObserver' in window) || reduceMotion) {
+            reveals.forEach(function (el) { el.classList.add('is-visible'); });
+        } else {
+            var ro = new IntersectionObserver(function (entries) {
+                entries.forEach(function (en) {
+                    if (!en.isIntersecting) { return; }
+                    var siblings = Array.prototype.indexOf.call(en.target.parentNode.children, en.target);
+                    en.target.style.transitionDelay = (Math.max(siblings, 0) % 4) * 90 + 'ms';
+                    en.target.classList.add('is-visible');
+                    ro.unobserve(en.target);
+                });
+            }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+            reveals.forEach(function (el) { ro.observe(el); });
+        }
+    }
+
     // ---- Count-up numbers: <strong data-count="753">753</strong> ----
     function countUp(el) {
         var target = parseInt(el.getAttribute('data-count'), 10);
