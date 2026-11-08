@@ -1046,3 +1046,41 @@ a { color: var(--primary-dark); }
 .stats .stat { min-width: 0; }
 @media (max-width: 1100px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .stats .stat:nth-child(3) { border-left: 0; } .stats .stat:nth-child(n+3) { border-top: 1px solid var(--line); } }
 @media (max-width: 600px) { .stats .stat { padding: .85rem .8rem; } .stat-icon { display: none; } }
+
+/* ---------- Homepage hero: live departures board ---------- */
+.l-hero { padding: clamp(2.5rem, 6vw, 5.5rem) 0 clamp(3rem, 6vw, 5rem); border-bottom: 1px solid var(--line); }
+.l-hero-grid { grid-template-columns: minmax(0, 7fr) minmax(0, 6fr); align-items: start; }
+.l-hero h1 { font-size: clamp(2.6rem, 5vw, 5.2rem); line-height: .98; }
+.board { background: var(--ink); color: #e9e3d8; border-radius: var(--radius-lg); padding: 1.1rem 1.2rem 1rem; font-family: var(--font-mono); box-shadow: var(--shadow-lg); animation: rise .8s cubic-bezier(.22, 1, .36, 1) both .15s; }
+.board-head { display: flex; justify-content: space-between; align-items: center; padding-bottom: .8rem; border-bottom: 1px solid #36332e; font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: #bdb6ab; }
+.board-clock { font-size: 1.05rem; color: var(--turmeric); letter-spacing: .06em; }
+.board-cols, .board-rows li { display: grid; grid-template-columns: minmax(0, 2.4fr) minmax(0, 1.3fr) minmax(0, .9fr) minmax(0, 1.2fr); gap: .8rem; align-items: center; }
+.board-cols { padding: .7rem 0 .4rem; font-size: .66rem; letter-spacing: .14em; text-transform: uppercase; color: #8d867b; }
+.board-cols span:nth-child(n+3), .board-rows li > span:nth-child(n+3) { text-align: right; justify-self: end; }
+.board-rows { list-style: none; margin: 0; padding: 0; }
+.board-rows li { padding: .72rem 0; border-top: 1px dashed #36332e; font-size: .9rem; animation: rise .6s ease both; }
+.board-rows li:nth-child(2) { animation-delay: .25s; } .board-rows li:nth-child(3) { animation-delay: .35s; }
+.board-rows li:nth-child(4) { animation-delay: .45s; } .board-rows li:nth-child(5) { animation-delay: .55s; }
+.board-food { color: #fff; font-family: var(--font); font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-food small { display: block; color: #8d867b; font-family: var(--font-mono); font-weight: 500; font-size: .66rem; text-transform: uppercase; letter-spacing: .08em; margin-top: .1rem; }
+.board-area { color: #bdb6ab; font-size: .8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-qty { color: #fff; font-weight: 700; white-space: nowrap; }
+.board-qty small { color: #8d867b; font-weight: 500; font-size: .7rem; }
+.board-left { display: inline-flex; align-items: center; gap: .4rem; font-weight: 700; white-space: nowrap; padding: .2rem .5rem; border-radius: 4px; }
+.board-left::before { content: ""; width: 12px; height: 12px; border-radius: 50%; background: conic-gradient(currentColor calc(var(--pct, 1) * 360deg), rgba(255, 255, 255, .15) 0);
+    -webkit-mask: radial-gradient(circle 3.5px, transparent 97%, #000); mask: radial-gradient(circle 3.5px, transparent 97%, #000); }
+.board-left.t-ok { color: #7fd29d !important; }
+.board-left.t-soon { color: var(--turmeric) !important; }
+.board-left.t-urgent { color: #fff !important; background: var(--chilli); }
+.board-empty { color: #bdb6ab; font-family: var(--font); padding: 1.2rem 0; margin: 0; border-top: 1px dashed #36332e; }
+.board-foot { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; padding-top: .8rem; margin-top: .2rem; border-top: 1px solid #36332e; font-size: .74rem; color: #8d867b; }
+.board-foot a { color: var(--turmeric); font-family: var(--font); font-weight: 600; display: inline-flex; align-items: center; gap: .3rem; }
+.board-foot a:hover { color: #fff; text-decoration: none; }
+@media (max-width: 900px) { .l-hero-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 520px) {
+    .board-cols { display: none; }
+    .board-rows li { grid-template-columns: minmax(0, 1fr) auto; row-gap: .25rem; }
+    .board-area { grid-column: 1; }
+    .board-qty { grid-row: 1; grid-column: 2; }
+    .board-left { grid-column: 2; }
+}

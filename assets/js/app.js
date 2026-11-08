@@ -31,6 +31,13 @@
     tick();
     setInterval(tick, 30000);
 
+    // Clock on the homepage live board
+    var clock = document.querySelector('[data-clock]');
+    if (clock) {
+        var showTime = function () { var d = new Date(); clock.textContent = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); };
+        showTime(); setInterval(showTime, 15000);
+    }
+
     // ---- Homepage navbar: mobile menu and shadow after scrolling ----
     var nav = document.querySelector('[data-nav]');
     if (nav) {

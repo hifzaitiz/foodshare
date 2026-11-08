@@ -117,24 +117,32 @@ require __DIR__ . '/includes/header.php';
                 </ul>
             </div>
 
-            <div class="l-hero-visual" aria-hidden="true">
-                <img class="l-hero-photo" src="assets/img/hero-sharing.jpg" alt="">
-                <div class="float-card float-card-a">
-                    <img src="assets/img/cat-cooked.jpg" alt="">
-                    <div>
-                        <strong>Chicken biryani</strong>
-                        <small>40 plates · Gulberg</small>
-                        <span class="status status-available">Available</span>
-                    </div>
-                </div>
-                <div class="float-card float-card-b">
-                    <span class="float-icon"><?= icon('check-circle') ?></span>
-                    <div>
-                        <strong>Collected</strong>
-                        <small>by Hope Foundation · code 482 731</small>
-                    </div>
-                </div>
-            </div>
+            <!-- Live "departures board" of real open food, soonest first -->
+            <aside class="board" aria-label="Food available right now">
+                <header class="board-head">
+                    <span><span class="live-dot"></span> Live board</span>
+                    <span class="board-clock" data-clock><?= date('H:i') ?></span>
+                </header>
+                <div class="board-cols"><span>Food</span><span>Area</span><span>Qty</span><span>Closes in</span></div>
+                <?php if (!$preview): ?>
+                    <p class="board-empty">No food is open right now. New posts appear here the moment a donor shares them.</p>
+                <?php endif; ?>
+                <ol class="board-rows">
+                    <?php foreach (array_slice($preview, 0, 5) as $p): ?>
+                    <?php [$left, $tone] = time_left($p['pickup_until']); ?>
+                    <li>
+                        <span class="board-food"><?= e($p['title']) ?><small><?= e($p['category'] ?? 'Food') ?></small></span>
+                        <span class="board-area"><?= e($p['area'] ?: $p['city']) ?></span>
+                        <span class="board-qty"><?= e($p['quantity']) ?> <small><?= e($p['unit']) ?></small></span>
+                        <span class="board-left t-<?= $tone ?>" data-until="<?= e(iso($p['pickup_until'])) ?>" data-from="<?= e(iso($p['pickup_from'])) ?>"><span class="tl"><?= e($left) ?></span></span>
+                    </li>
+                    <?php endforeach; ?>
+                </ol>
+                <footer class="board-foot">
+                    <span><?= plural($openNow, 'post') ?> open · <?= number_format((int) $numbers['plates']) ?> plates saved</span>
+                    <a href="login.php">Log in to claim <?= icon('arrow-right') ?></a>
+                </footer>
+            </aside>
         </div>
     </section>
 
