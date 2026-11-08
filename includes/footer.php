@@ -4,5 +4,6 @@
 </div><!-- /.app -->
 <?php endif; ?>
 <script src="assets/js/validate.js"></script>
+<script src="assets/js/app.js"></script>
 </body>
 </html>
