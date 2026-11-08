@@ -62,17 +62,6 @@ require __DIR__ . '/includes/header.php';
                 <button type="submit" class="btn btn-primary btn-block btn-lg">Log in <?= icon('arrow-right') ?></button>
             </form>
             <p class="switch">New here? <a href="signup.php">Create an account</a></p>
-
-            <details class="demo-box">
-                <summary>Demo accounts</summary>
-                <p>Password for all: <code>password123</code></p>
-                <ul>
-                    <li><code>donor@foodshare.test</code></li>
-                    <li><code>ngo@foodshare.test</code></li>
-                    <li><code>volunteer@foodshare.test</code></li>
-                    <li><code>admin@foodshare.test</code></li>
-                </ul>
-            </details>
         </div>
     </main>
 </div>

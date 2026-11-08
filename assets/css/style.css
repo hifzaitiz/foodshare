@@ -180,13 +180,6 @@ input.invalid:focus { box-shadow: 0 0 0 4px rgba(180, 35, 24, .14); }
 .auth-card .btn-block { margin-top: 1.6rem; }
 .switch { text-align: center; margin-top: 1.4rem; color: var(--muted); font-size: .92rem; }
 
-.demo-box {
-    margin-top: 1.6rem; border: 1px dashed var(--border-strong); border-radius: 12px; padding: .7rem 1rem;
-    font-size: .85rem; color: var(--muted); background: var(--surface);
-}
-.demo-box summary { cursor: pointer; font-weight: 600; color: var(--ink); }
-.demo-box p { margin: .6rem 0 .3rem; }
-.demo-box ul { margin: 0; padding-left: 1.1rem; line-height: 1.9; }
 
 /* Role picker cards on signup */
 .role-picker { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: .7rem; }
