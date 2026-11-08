@@ -97,3 +97,9 @@ function display_status(string $status, ?string $until): string
     }
     return $status;
 }
+
+// "1 donor", "3 donors"
+function plural(int $n, string $word): string
+{
+    return $n . ' ' . $word . ($n === 1 ? '' : 's');
+}

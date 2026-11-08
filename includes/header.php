@@ -28,6 +28,7 @@ if ($appShell) {
             $navItems[] = ['volunteers', 'Volunteer requests', 'home.php#volunteers', 'users'];
             break;
     }
+    $navItems[] = ['impact', 'Impact', 'impact.php', 'leaf'];
     $navItems[] = ['profile', 'Profile', 'profile.php', 'user'];
 }
 ?>

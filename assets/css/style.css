@@ -534,3 +534,20 @@ td small, .sub { display: block; color: var(--muted); font-size: .77rem; }
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* Impact page: charts and leaderboards */
+.impact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.7rem; }
+.impact-grid .card { margin-bottom: 0; }
+.chart-wide { grid-column: 1 / -1; }
+.chart-box { position: relative; height: 280px; margin-top: .6rem; }
+.chart-box-round { height: 300px; }
+.leaderboard { list-style: none; margin: 1rem 0 0; padding: 0; display: grid; gap: .6rem; }
+.leaderboard li { display: flex; align-items: center; gap: .75rem; padding: .6rem .75rem; border: var(--border); border-radius: 12px; background: var(--paper); }
+.rank { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; border: var(--border); background: var(--surface); font: 800 .95rem var(--font-display); flex-shrink: 0; }
+.rank-1 { background: var(--butter); box-shadow: var(--shadow-sm); transform: rotate(-5deg); }
+.rank-2 { background: var(--sky); }
+.rank-3 { background: var(--peach); }
+.lb-name { flex: 1; min-width: 0; font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-score { font-size: .82rem; color: var(--muted); white-space: nowrap; }
+.lb-score strong { color: var(--ink); font-size: .95rem; }
+@media (max-width: 960px) { .impact-grid { grid-template-columns: 1fr; } .chart-box { height: 240px; } }
