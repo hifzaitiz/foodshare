@@ -9,9 +9,13 @@ verified volunteers claim and collect it before it goes to waste.
 **Stack:** PHP 8 (PDO, sessions), MySQL / MariaDB, HTML, CSS and vanilla JavaScript. No framework.
 See [PRD.md](PRD.md) for requirements and [docs/erd.mmd](docs/erd.mmd) for the database design.
 
-![Available food](docs/screenshots/available.jpg)
+![Homepage](docs/screenshots/homepage.jpg)
 
 ## Features
+
+### Public homepage
+- A full landing page for visitors: navbar with Log in / Sign up, introduction, live impact numbers, how it works,
+  features, who it's for (with role-specific sign-up links), a live preview of open food, FAQ and footer.
 
 ### Donor
 - Post surplus food: title, category, quantity, description, pickup window and pickup address.
@@ -137,7 +141,7 @@ The seed also contains two weeks of past activity so the Impact charts have data
 
 ## Project structure
 ```
-index.php         redirects to login or dashboard
+index.php         public homepage (logged-in users go to their dashboard)
 signup.php        sign up as donor, NGO or volunteer
 login.php         log in        logout.php   log out (POST + CSRF)
 home.php          role-based dashboard
