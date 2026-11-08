@@ -20,6 +20,19 @@ function load_user(PDO $pdo, int $id): array
 $user      = load_user($pdo, $userId);
 $errors    = [];      // details form
 $pwErrors  = [];      // password form
+$ngoErrors = [];      // NGO address form (NGO managers only)
+
+// NGO accounts: the organisation they registered, its address and verification state.
+$ngo = null;
+if ($role === 'ngo') {
+    $stmt = $pdo->prepare(
+        'SELECT n.id, n.name, n.registration_no, n.is_verified, n.rejected_at, n.location_id, l.address, l.area, l.city
+         FROM ngos n LEFT JOIN locations l ON l.id = n.location_id WHERE n.owner_user_id = ? LIMIT 1'
+    );
+    $stmt->execute([$userId]);
+    $ngo = $stmt->fetch() ?: null;
+}
+$ngoOld = ['ngo_address' => (string) ($ngo['address'] ?? ''), 'ngo_area' => (string) ($ngo['area'] ?? ''), 'ngo_city' => (string) ($ngo['city'] ?? '')];
 $old = [
     'full_name'         => $user['full_name'],
     'phone'             => (string) $user['phone'],
@@ -82,6 +95,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $errors[] = 'Could not save your details. Please try again.';
             }
         }
+    } elseif ($form === 'ngo' && $ngo) {
+        foreach ($ngoOld as $k => $_) {
+            $ngoOld[$k] = trim($_POST[$k] ?? '');
+        }
+        if ($ngoOld['ngo_address'] === '' || $ngoOld['ngo_city'] === '') {
+            $ngoErrors[] = 'The NGO office address and city are required.';
+        }
+        if (!$ngoErrors) {
+            $pdo->beginTransaction();
+            try {
+                // A new row, because location rows can be shared (e.g. with the manager's own address).
+                $pdo->prepare('INSERT INTO locations (address, area, city) VALUES (?, ?, ?)')
+                    ->execute([$ngoOld['ngo_address'], $ngoOld['ngo_area'] ?: null, $ngoOld['ngo_city']]);
+                $pdo->prepare('UPDATE ngos SET location_id = ? WHERE id = ? AND owner_user_id = ?')
+                    ->execute([(int) $pdo->lastInsertId(), (int) $ngo['id'], $userId]);
+                $pdo->commit();
+                flash('success', 'NGO address saved.');
+                header('Location: profile.php');
+                exit;
+            } catch (Throwable $ex) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                $ngoErrors[] = 'Could not save the NGO address. Please try again.';
+            }
+        }
     } elseif ($form === 'password') {
         $current = $_POST['current_password'] ?? '';
         $new     = $_POST['new_password'] ?? '';
@@ -115,13 +154,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// NGO accounts: show the organisation they registered and its verification state.
-$ngo = null;
-if ($role === 'ngo') {
-    $stmt = $pdo->prepare('SELECT name, registration_no, is_verified, rejected_at FROM ngos WHERE owner_user_id = ? LIMIT 1');
-    $stmt->execute([$userId]);
-    $ngo = $stmt->fetch() ?: null;
-}
 $verifiedFlag = $role === 'ngo' ? $ngo : ($role === 'volunteer' ? $user : null);
 
 $flash = $_SESSION['flash'] ?? null;
@@ -163,7 +195,8 @@ require __DIR__ . '/includes/header.php';
                 </dd></div>
                 <?php endif; ?>
                 <?php if ($ngo): ?>
-                <div><dt><?= icon('building') ?> Organisation</dt><dd><?= e($ngo['name']) ?><small>Reg. no. <?= e($ngo['registration_no']) ?></small></dd></div>
+                <div><dt><?= icon('building') ?> Organisation</dt><dd><?= e($ngo['name']) ?><small>Reg. no. <?= e($ngo['registration_no']) ?></small>
+                    <?php if ($ngo['city']): ?><small><?= e($ngo['address']) ?>, <?= e(trim(($ngo['area'] ? $ngo['area'] . ', ' : '') . $ngo['city'])) ?></small><?php endif; ?></dd></div>
                 <?php endif; ?>
             </dl>
         </aside>
@@ -219,6 +252,37 @@ require __DIR__ . '/includes/header.php';
                     <button type="submit" class="btn btn-primary"><?= icon('check') ?> Save details</button>
                 </div>
             </form>
+
+            <?php if ($ngo): ?>
+            <form method="post" class="card form-card" id="ngoForm" novalidate>
+                <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
+                <input type="hidden" name="form" value="ngo">
+
+                <fieldset class="form-section">
+                    <legend><span class="step"><?= icon('building') ?></span> <?= e($ngo['name']) ?> office address</legend>
+                    <?php if ($ngoErrors): ?>
+                        <div class="alert alert-error"><?= icon('alert') ?><ul><?php foreach ($ngoErrors as $err): ?><li><?= e($err) ?></li><?php endforeach; ?></ul></div>
+                    <?php endif; ?>
+                    <p class="muted small">Shown to the admin when your NGO is verified.</p>
+                    <label for="ngo_address">Street address</label>
+                    <input type="text" id="ngo_address" name="ngo_address" value="<?= e($ngoOld['ngo_address']) ?>" placeholder="Street, building, landmark" required>
+                    <div class="row-2">
+                        <div>
+                            <label for="ngo_area">Area <span class="opt">optional</span></label>
+                            <input type="text" id="ngo_area" name="ngo_area" value="<?= e($ngoOld['ngo_area']) ?>">
+                        </div>
+                        <div>
+                            <label for="ngo_city">City</label>
+                            <input type="text" id="ngo_city" name="ngo_city" value="<?= e($ngoOld['ngo_city']) ?>" required>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary"><?= icon('check') ?> Save NGO address</button>
+                </div>
+            </form>
+            <?php endif; ?>
 
             <form method="post" class="card form-card" id="passwordForm" novalidate>
                 <input type="hidden" name="csrf" value="<?= e($csrf) ?>">

@@ -114,8 +114,9 @@ if ($role === 'ngo' || $role === 'volunteer') {
 
 if ($role === 'admin') {
     $pendingNgos = $pdo->query(
-        'SELECT n.id, n.name, n.registration_no, u.email
+        'SELECT n.id, n.name, n.registration_no, u.email, l.address, l.area, l.city
          FROM ngos n JOIN users u ON u.id = n.owner_user_id
+         LEFT JOIN locations l ON l.id = n.location_id
          WHERE n.is_verified = 0 AND n.rejected_at IS NULL'
     )->fetchAll();
     $pendingVolunteers = $pdo->query(
@@ -415,7 +416,8 @@ require __DIR__ . '/includes/header.php';
                     <span class="avatar avatar-ngo"><?= e(initials($n['name'])) ?></span>
                     <div class="req-info">
                         <strong><?= e($n['name']) ?></strong>
-                        <small><?= icon('id') ?><?= e($n['registration_no']) ?> &nbsp; <?= icon('mail') ?><?= e($n['email']) ?></small>
+                        <small><span class="meta"><?= icon('id') ?><?= e($n['registration_no']) ?></span><span class="meta"><?= icon('mail') ?><?= e($n['email']) ?></span></small>
+                        <?php if ($n['city']): ?><small><span class="meta"><?= icon('pin') ?><?= e($n['address']) ?>, <?= e(trim(($n['area'] ? $n['area'] . ', ' : '') . $n['city'])) ?></span></small><?php endif; ?>
                     </div>
                     <form method="post" action="verify.php" class="inline-form">
                         <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
@@ -453,7 +455,7 @@ require __DIR__ . '/includes/header.php';
                     <span class="avatar avatar-volunteer"><?= e(initials($v['full_name'])) ?></span>
                     <div class="req-info">
                         <strong><?= e($v['full_name']) ?></strong>
-                        <small><?= icon('mail') ?><?= e($v['email']) ?><?php if ($v['phone']): ?> &nbsp; <?= icon('phone') ?><?= e($v['phone']) ?><?php endif; ?></small>
+                        <small><span class="meta"><?= icon('mail') ?><?= e($v['email']) ?></span><?php if ($v['phone']): ?><span class="meta"><?= icon('phone') ?><?= e($v['phone']) ?></span><?php endif; ?></small>
                     </div>
                     <form method="post" action="verify.php" class="inline-form">
                         <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
