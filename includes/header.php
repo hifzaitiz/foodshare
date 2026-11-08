@@ -41,7 +41,8 @@ $shortLabels = ['home' => 'Home', 'post_food' => 'Post', 'available' => 'Food', 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e($pageTitle) ?> | Save &amp; Serve</title>
-    <link rel="icon" type="image/svg+xml" href="assets/img/logo.svg">
+    <link rel="icon" type="image/png" href="assets/img/favicon.png">
+    <link rel="apple-touch-icon" href="assets/img/logo-192.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:ital,opsz,wght@1,9..144,500&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -58,7 +59,7 @@ $shortLabels = ['home' => 'Home', 'post_food' => 'Post', 'available' => 'Food', 
 <div class="app">
     <aside class="sidebar">
         <a class="brand" href="home.php">
-            <img class="brand-logo" src="assets/img/logo.svg" alt="">
+            <img class="brand-logo" src="assets/img/logo-192.png" alt="">
             <span>Save <b>&amp;</b> Serve</span>
         </a>
 

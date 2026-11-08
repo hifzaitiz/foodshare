@@ -186,7 +186,7 @@ require __DIR__ . '/includes/header.php';
             <!-- Full-screen "boarding pass" to hold up at the handover -->
             <dialog class="pass" id="pass" aria-label="Pickup pass">
                 <div class="pass-top">
-                    <span class="pass-brand"><img src="assets/img/logo.svg" alt=""> Save &amp; Serve · Pickup pass</span>
+                    <span class="pass-brand"><img src="assets/img/logo-192.png" alt=""> Save &amp; Serve · Pickup pass</span>
                     <button type="button" class="pass-close" data-pass-close aria-label="Close"><?= icon('x') ?></button>
                 </div>
                 <div class="pass-body">

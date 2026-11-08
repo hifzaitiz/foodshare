@@ -72,7 +72,7 @@ require __DIR__ . '/includes/header.php';
 <header class="site-nav" data-nav>
     <div class="site-nav-inner">
         <a class="brand" href="index.php">
-            <img class="brand-logo" src="assets/img/logo.svg" alt="">
+            <img class="brand-logo" src="assets/img/logo-192.png" alt="">
             <span>Save <b>&amp;</b> Serve</span>
         </a>
         <nav class="site-links" id="site-links" aria-label="Main">
@@ -355,7 +355,7 @@ require __DIR__ . '/includes/header.php';
     <div class="l-container site-footer-grid">
         <div>
             <a class="brand" href="index.php">
-                <img class="brand-logo" src="assets/img/logo.svg" alt="">
+                <img class="brand-logo" src="assets/img/logo-192.png" alt="">
                 <span>Save <b>&amp;</b> Serve</span>
             </a>
             <p>Connecting surplus food with the people who need it. Less waste, fewer hungry nights.</p>

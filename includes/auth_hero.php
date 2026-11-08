@@ -1,6 +1,6 @@
 <aside class="auth-hero">
     <a class="brand brand-light" href="index.php">
-        <img class="brand-logo" src="assets/img/logo.svg" alt="">
+        <img class="brand-logo" src="assets/img/logo-192.png" alt="">
         <span>Save <b>&amp;</b> Serve</span>
     </a>
 

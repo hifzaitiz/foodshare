@@ -1289,3 +1289,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: non
 /* A card whose pickup window just closed (set by app.js) fades out */
 .is-closed { opacity: .5; filter: grayscale(.6); transition: opacity .4s, filter .4s; }
 .is-closed:hover { opacity: .8; }
+.brand-logo { width: 46px; height: 46px; object-fit: contain; }
+.sidebar .brand-logo { width: 46px; height: 46px; }
+@media (max-width: 960px) { .sidebar .brand-logo { width: 38px; height: 38px; } }

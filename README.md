@@ -1,4 +1,4 @@
-<img src="assets/img/logo-full.svg" alt="Save &amp; Serve" height="64">
+<img src="assets/img/logo.png" alt="Save &amp; Serve logo" height="110">
 
 # Save & Serve – Surplus Food Sharing Platform
 
@@ -182,7 +182,7 @@ Bundled in `assets/js/vendor/` so everything works offline:
 Fonts: Archivo, DM Sans, JetBrains Mono and Fraunces from Google Fonts (SIL Open Font License).
 
 ## Image credits
-The logo (`logo.svg`, `logo-full.svg`) was made for this project. Photos in `assets/img/` are from [Unsplash](https://unsplash.com) and used under the
+The logo (`logo.png`, with `logo-192.png` and `favicon.png` sizes) is the project's own artwork. Photos in `assets/img/` are from [Unsplash](https://unsplash.com) and used under the
 [Unsplash License](https://unsplash.com/license) (free for commercial and non-commercial use).
 
 | File | Source |
