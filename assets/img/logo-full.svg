@@ -1,12 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 72" role="img" aria-label="Save &amp; Serve">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 72" role="img" aria-label="Save &amp; Serve">
   <g transform="translate(4 4)">
-    <circle cx="32" cy="32" r="29.5" fill="#FFE27A" stroke="#1D1A17" stroke-width="3"/>
-    <path d="M13.5 44a18.5 18.5 0 0 1 37 0Z" fill="#E8613C" stroke="#1D1A17" stroke-width="3" stroke-linejoin="round"/>
-    <rect x="9.5" y="44" width="45" height="6" rx="3" fill="#fff" stroke="#1D1A17" stroke-width="3"/>
-    <path d="M21.5 38.5a11 11 0 0 1 5.8-8" stroke="#fff" stroke-width="2.8" stroke-linecap="round" fill="none"/>
-    <path d="M32 25.5c-6-2.7-7-10.3.2-16.3 6.6 5.6 6.2 13.2-.2 16.3Z" fill="#7DDB8B" stroke="#1D1A17" stroke-width="2.6" stroke-linejoin="round"/>
-    <path d="M32.1 24.6v-9" stroke="#1D1A17" stroke-width="2" stroke-linecap="round"/>
-    <path d="M50 13l1.6 3.4 3.4 1.6-3.4 1.6L50 23l-1.6-3.4-3.4-1.6 3.4-1.6z" fill="#fff" stroke="#1D1A17" stroke-width="1.8" stroke-linejoin="round"/>
+  <circle cx="32" cy="32" r="31" fill="#FCE3B0"/>
+  <circle cx="32" cy="32" r="31" fill="none" stroke="#E8613C" stroke-opacity=".25" stroke-width="2"/>
+  <path d="M13.5 43.5a18.5 18.5 0 0 1 37 0Z" fill="#E8613C"/>
+  <path d="M21.5 38a11 11 0 0 1 5.8-8" stroke="#FFF7EC" stroke-width="2.8" stroke-linecap="round" fill="none" opacity=".9"/>
+  <rect x="9.5" y="44" width="45" height="5.5" rx="2.75" fill="#2F6B4F"/>
+  <path d="M32 25.5c-6-2.7-7-10.3.2-16.3 6.6 5.6 6.2 13.2-.2 16.3Z" fill="#3E9B5C"/>
+  <path d="M32.1 24.2v-8.6" stroke="#FCE3B0" stroke-width="1.8" stroke-linecap="round"/>
   </g>
-  <text x="84" y="48" font-family="'Bricolage Grotesque', 'Segoe UI', Arial, sans-serif" font-size="34" font-weight="800" letter-spacing="-0.6" fill="#1D1A17">Save <tspan fill="#E8613C">&amp;</tspan> Serve</text>
+  <text x="84" y="47" font-family="Fraunces, Georgia, 'Times New Roman', serif" font-size="34" font-weight="600" letter-spacing="-0.5" fill="#1F1A16">Save <tspan fill="#E8613C" font-style="italic">&amp;</tspan> Serve</text>
 </svg>

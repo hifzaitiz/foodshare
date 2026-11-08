@@ -8,12 +8,12 @@
     }
     var data = JSON.parse(dataEl.textContent);
 
-    // Match the site's bold style: ink outlines, flat colour fills.
-    var ink = '#1d1a17';
-    var palette = ['#e8613c', '#b9efd2', '#ffe27a', '#c4e4ff', '#dccfff', '#ffcbc2', '#ffd8c4'];
+    // Match the site's warm editorial style: flat fills, no outlines.
+    var ink = '#1f1a16';
+    var palette = ['#e8613c', '#2f6b4f', '#f2b45a', '#7fa7c9', '#c8a2d4', '#e9a08a', '#9cc5a8'];
     Chart.defaults.font.family = '"DM Sans", system-ui, sans-serif';
     Chart.defaults.font.size = 13;
-    Chart.defaults.color = ink;
+    Chart.defaults.color = '#7d7166';
     Chart.defaults.plugins.legend.labels.usePointStyle = true;
     Chart.defaults.plugins.tooltip.backgroundColor = ink;
     Chart.defaults.plugins.tooltip.padding = 10;
@@ -22,7 +22,7 @@
         Chart.defaults.animation = false;
     }
 
-    var grid = { color: 'rgba(29, 26, 23, .08)' };
+    var grid = { color: 'rgba(31, 26, 22, .06)' };
     var whole = { precision: 0 };   // counts are whole numbers
 
     new Chart(document.getElementById('activityChart'), {
@@ -30,8 +30,8 @@
         data: {
             labels: data.days,
             datasets: [
-                { label: 'Posted', data: data.posted, backgroundColor: palette[2], borderColor: ink, borderWidth: 2, borderRadius: 6 },
-                { label: 'Collected', data: data.collected, backgroundColor: palette[0], borderColor: ink, borderWidth: 2, borderRadius: 6 }
+                { label: 'Posted', data: data.posted, backgroundColor: '#f2b45a', borderRadius: 8, maxBarThickness: 22 },
+                { label: 'Collected', data: data.collected, backgroundColor: '#2f6b4f', borderRadius: 8, maxBarThickness: 22 }
             ]
         },
         options: {
@@ -45,7 +45,7 @@
         type: 'doughnut',
         data: {
             labels: data.catLabels,
-            datasets: [{ data: data.catCounts, backgroundColor: palette, borderColor: ink, borderWidth: 2, hoverOffset: 10 }]
+            datasets: [{ data: data.catCounts, backgroundColor: palette, borderColor: '#ffffff', borderWidth: 3, hoverOffset: 8 }]
         },
         options: { responsive: true, maintainAspectRatio: false, cutout: '55%', plugins: { legend: { position: 'bottom' } } }
     });
@@ -56,8 +56,8 @@
             labels: data.outcome.labels,
             datasets: [{
                 data: data.outcome.values,
-                backgroundColor: ['#b9efd2', '#ffe27a', '#c4e4ff', '#ece6dd', '#ffcbc2'],
-                borderColor: ink, borderWidth: 2, borderRadius: 6
+                backgroundColor: ['#2f6b4f', '#f2b45a', '#7fa7c9', '#d8cfc4', '#e9a08a'],
+                borderRadius: 8, maxBarThickness: 26
             }]
         },
         options: {
