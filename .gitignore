@@ -10,3 +10,6 @@ Thumbs.db
 
 # Office lock files
 ~$*
+
+# Personal study copy of the viva guide (generated, not shared)
+docs/VIVA_GUIDE.pdf
